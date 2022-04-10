@@ -19,4 +19,5 @@ from django.contrib import admin
 urlpatterns = [
     path('general_app/', include('general_app.urls')),
     path('admin/', admin.site.urls),
+    path("accounts/", include("django.contrib.auth.urls")),
 ]
