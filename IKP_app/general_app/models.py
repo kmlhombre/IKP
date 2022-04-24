@@ -8,12 +8,12 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-# Create your models here.
 
+# Create your models here.
 class Appointments(models.Model):
-    patient_pesel = models.ForeignKey('Patient', models.DO_NOTHING, db_column='patient_pesel')
+    patient_pesel = models.ForeignKey('Patient', models.DO_NOTHING, db_column='patient_pesel', primary_key=True)
     appointment_date = models.DateTimeField()
-    department = models.ForeignKey('Departments', models.DO_NOTHING)
+    department = models.ForeignKey('Departments', models.DO_NOTHING, related_name='name_Departments')
     room = models.ForeignKey('Rooms', models.DO_NOTHING, blank=True, null=True)
     doctor = models.ForeignKey('HospitalStaff', models.DO_NOTHING, related_name='doctor_HospitalStaff')
     appointment_type = models.ForeignKey('DAppointmentType', models.DO_NOTHING, db_column='appointment_type')
@@ -22,9 +22,11 @@ class Appointments(models.Model):
     nfz = models.BooleanField()
     recommendations = models.TextField(blank=True, null=True)
     accepted_at = models.DateTimeField(blank=True, null=True)
-    accepted_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='accepted_by', blank=True, null=True, related_name='accepted_HospitalStaff')
+    accepted_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='accepted_by', blank=True, null=True,
+                                    related_name='accepted_HospitalStaff')
     updated_at = models.DateTimeField(blank=True, null=True)
-    updated_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='updated_by', blank=True, null=True, related_name='updated_HospitalStaff')
+    updated_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='updated_by', blank=True, null=True,
+                                   related_name='updated_HospitalStaff')
 
     class Meta:
         managed = False
@@ -111,7 +113,7 @@ class Campaigns(models.Model):
 
 
 class CampaingnsAgreement(models.Model):
-    pesel = models.ForeignKey('Patient', models.DO_NOTHING, db_column='pesel', unique=True)
+    patient_pesel = models.ForeignKey('Patient', models.DO_NOTHING, db_column='patient_pesel', unique=True)
     agreement_on_email = models.BooleanField(blank=True, null=True)
     agreement_on_phone = models.BooleanField(blank=True, null=True)
 
@@ -121,7 +123,7 @@ class CampaingnsAgreement(models.Model):
 
 
 class DAddressPrefix(models.Model):
-    prefix = models.CharField(unique=True, max_length=6)
+    prefix = models.CharField(unique=True, max_length=3)
 
     class Meta:
         managed = False
@@ -137,7 +139,7 @@ class DAppointmentType(models.Model):
 
 
 class DGender(models.Model):
-    gender = models.TextField(unique=True)
+    gender = models.TextField(unique=True, max_length=3)
 
     class Meta:
         managed = False
@@ -158,6 +160,22 @@ class DStaffTitle(models.Model):
     class Meta:
         managed = False
         db_table = 'd_staff_title'
+
+
+class DRegion(models.Model):
+    region = models.TextField(unique=True)
+
+    class Meta:
+        managed = False
+        db_table = 'd_region'
+
+
+class DCountry(models.Model):
+    country = models.TextField(unique=True)
+
+    class Meta:
+        managed = False
+        db_table = 'd_country'
 
 
 class Departments(models.Model):
@@ -214,10 +232,15 @@ class DjangoSession(models.Model):
 
 class Examinations(models.Model):
     patient_pesel = models.ForeignKey('Patient', models.DO_NOTHING, db_column='patient_pesel')
-    document_url = models.TextField()
+    document_content = models.TextField()
     document_type = models.TextField()
     uploaded_at = models.DateTimeField()
-    uploaded_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='uploaded_by', blank=True, null=True, related_name='uploaded_HospitalStaff')
+    uploaded_by_staff = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='uploaded_by_staff', blank=True,
+                                          null=True,
+                                          related_name='uploaded_HospitalStaff')
+    uploaded_by_patient = models.ForeignKey('Patient', models.DO_NOTHING, db_column='uploaded_by_patient', blank=True,
+                                            null=True,
+                                            related_name='uploaded_Patient')
     accepted_at = models.DateTimeField()
     accepted_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='accepted_by')
 
@@ -239,10 +262,37 @@ class Notifications(models.Model):
         db_table = 'notifications'
 
 
+class AppointmentNotifications(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    patient_pesel = models.ForeignKey('Patient', models.DO_NOTHING, db_column='patient_pesel')
+    email = models.CharField(max_length=50, blank=True, null=True)
+    phone_number = models.CharField(max_length=14, blank=True, null=True)
+    text = models.TextField(blank=True, null=True)
+    email_sent = models.BooleanField(blank=True, null=True)
+    phone_number_sent = models.BooleanField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'appointment_notifications'
+
+
+class CampaignNotifications(models.Model):
+    patient_pesel = models.ForeignKey('Patient', models.DO_NOTHING, db_column='patient_pesel')
+    email = models.CharField(max_length=50, blank=True, null=True)
+    phone_number = models.CharField(max_length=14, blank=True, null=True)
+    text = models.TextField(blank=True, null=True)
+    email_sent = models.BooleanField(blank=True, null=True)
+    phone_number_sent = models.BooleanField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'campaign_notifications'
+
+
 class HospitalStaff(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     id = models.IntegerField(primary_key=True)
-    second_name = models.CharField(max_length=50)
+    second_name = models.CharField(max_length=50, null=True)
     role = models.ForeignKey(DStaffRole, models.DO_NOTHING, db_column='role')
     title = models.ForeignKey(DStaffTitle, models.DO_NOTHING, db_column='title', blank=True, null=True)
     last_password_change = models.DateTimeField(blank=True, null=True)
@@ -256,16 +306,20 @@ class HospitalStaff(models.Model):
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     pesel = models.CharField(primary_key=True, max_length=11)
+    first_name = models.CharField(max_length=25, blank=True, null=True)
+    last_name = models.CharField(max_length=25, blank=True, null=True)
     second_name = models.CharField(max_length=50)
     gender = models.ForeignKey(DGender, models.DO_NOTHING, db_column='gender')
     phone_number = models.CharField(max_length=14)
-    address_prefix = models.ForeignKey(DAddressPrefix, models.DO_NOTHING, db_column='address_prefix', blank=True, null=True)
-    address = models.CharField(max_length=25)
-    house_number = models.IntegerField()
-    house_number_supplement = models.CharField(max_length=5, blank=True, null=True)
-    city = models.CharField(max_length=25)
-    region = models.CharField(max_length=50)
-    country = models.CharField(max_length=3)
+    address_prefix = models.ForeignKey(DAddressPrefix, models.DO_NOTHING, db_column='address_prefix', blank=True,
+                                       null=True)
+    address = models.CharField(max_length=40)
+    house_number = models.CharField(max_length=5)
+    apartment_number = models.CharField(max_length=5, blank=True, null=True)
+    city = models.CharField(max_length=30)
+    region = models.ForeignKey(DRegion, models.DO_NOTHING, db_column="region", blank=True, null=True)
+    country = models.ForeignKey(DCountry, models.DO_NOTHING, db_column="country", blank=True, null=True)
+    email = models.CharField(max_length=50, blank=True, null=True)
     birthdate = models.DateField()
     created_at = models.DateTimeField()
     created_by = models.DateTimeField()
@@ -286,12 +340,14 @@ class PatientOld(models.Model):
     second_name = models.CharField(max_length=50, blank=True, null=True)
     gender = models.TextField(blank=True, null=True)
     phone_number = models.CharField(max_length=14, blank=True, null=True)
+    address_prefix = models.ForeignKey(DAddressPrefix, models.DO_NOTHING, db_column='address_prefix', blank=True,
+                                       null=True)
     address = models.CharField(max_length=25, blank=True, null=True)
     house_number = models.IntegerField(blank=True, null=True)
-    house_number_supplement = models.CharField(max_length=5, blank=True, null=True)
+    apartment_number = models.CharField(max_length=5, blank=True, null=True)
     city = models.CharField(max_length=25, blank=True, null=True)
-    region = models.CharField(max_length=50, blank=True, null=True)
-    country = models.CharField(max_length=3, blank=True, null=True)
+    region = models.ForeignKey(DRegion, models.DO_NOTHING, db_column="region", blank=True, null=True)
+    country = models.ForeignKey(DCountry, models.DO_NOTHING, db_column="country", blank=True, null=True)
     email = models.CharField(max_length=50, blank=True, null=True)
     birthdate = models.DateField(blank=True, null=True)
     modified_by = models.DateTimeField()
@@ -328,7 +384,7 @@ class Timetable(models.Model):
 
 class UnacceptedExaminations(models.Model):
     patient_pesel = models.ForeignKey(Patient, models.DO_NOTHING, db_column='patient_pesel')
-    document_url = models.TextField()
+    document_scan = models.TextField()
     document_type = models.TextField()
     uploaded_at = models.DateTimeField()
     rejected_at = models.DateTimeField(blank=True, null=True)
