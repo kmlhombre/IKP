@@ -6,10 +6,12 @@ from django.template import RequestContext
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 
+from django.contrib.auth.hashers import make_password
+
 
 
 def index(request):
-    return render(request, 'website-base.html')
+    return render(request, 'index.html')
 
 
 def login_user(request):
@@ -29,3 +31,7 @@ def login_user(request):
 @login_required(login_url='/general_app/login_user/')
 def main(request):
     return HttpResponse("You are logged")
+
+def check_password(request):
+    passwd = make_password('admin')
+    return HttpResponse(passwd)
