@@ -1,0 +1,22 @@
+{% extends "website-base.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="pl">
+    Appointments:
+    <table border="1">
+        <tr>
+            <th>id</th>
+            <th>patient pesel</th>
+            <th>appointment date</th>
+            <th>department id</th>
+            <th>room id</th>
+            <th>doctor id</th>
+            <th>accepted by</th>
+        </tr>
+            {% for i in appointments %}
+            <tr><th>{{ i.id}}</th><th>{{ i.patient_pesel.pesel}}</th><th>{{ i.appointment_date}}</th><th>{{ i.department.id}}</th>
+                <th>{{ i.room.id}}</th><th>{{ i.doctor.id}}</th><th>{{ i.accepted_by.id}}</th></tr>
+            {% endfor %}
+    </table>
+</html>
+{% endblock %}

@@ -1,13 +1,14 @@
-from django.shortcuts import render
 from django.http import *
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render, render_to_response, redirect
 from django.template import RequestContext
+from django.db import connection
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 
 from django.contrib.auth.hashers import make_password
 
+from general_app.models import *
 
 
 def index(request):
