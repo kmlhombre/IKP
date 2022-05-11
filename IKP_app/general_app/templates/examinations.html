@@ -1,23 +1,20 @@
 {% extends "website-base.html" %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="pl">
     Examinations:
-    <table border="1">
+    <table class="table">
         <tr>
-            <th>id</th>
-            <th>patient pesel</th>
-            <th>document url</th>
-            <th>document type</th>
-            <th>uploaded at</th>
-            <th>uploaded by</th>
-            <th>accepted at</th>
-            <th>accepted by</th>
+            <th scope="col">id</th>
+            <th scope="col">patient pesel</th>
+            <th scope="col">document scan</th>
+            <th scope="col">document type</th>
+            <th scope="col">uploaded at</th>
+            <th scope="col">uploaded by</th>
+            <th scope="col">accepted at</th>
+            <th scope="col">accepted by</th>
         </tr>
             {% for i in exams %}
-            <tr><th>{{ i.id}}</th><th>{{ i.patient_pesel.pesel}}</th><th>{{ i.document_url}}</th><th>{{ i.document_type}}</th>
-                <th>{{ i.uploaded_at}}</th><th>{{ i.uploaded_by.id}}</th><th>{{ i.accepted_at}}</th><th>{{ i.accepted_by.id}}</th></tr>
+            <tr><td>{{ i.id}}</td><td>{{ i.patient_pesel.pesel}}</td><td>{{ i.document_scan}}</td><td>{{ i.document_type}}</td>
+                <td>{{ i.uploaded_at}}</td><td>{{ i.uploaded_by.id}}</td><td>{{ i.accepted_at}}</td><td>{{ i.accepted_by.id}}</td></tr>
             {% endfor %}
     </table>
-</html>
 {% endblock %}

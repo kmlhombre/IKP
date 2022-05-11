@@ -27,6 +27,7 @@ def login_user(request):
             if user.is_active:
                 login(request, user)
                 return HttpResponseRedirect('/main/')
+
     return render(request, 'login.html')
 
 @login_required(login_url='/general_app/login_user/')

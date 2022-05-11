@@ -267,10 +267,11 @@ class Examinations(models.Model):
     document_type = models.TextField()
     uploaded_at = models.DateTimeField()
     uploaded_by = models.ForeignKey(AuthUser, models.DO_NOTHING, db_column='uploaded_by')
-    accepted_at = models.DateTimeField()
-    accepted_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='accepted_by')
+    accepted_at = models.DateTimeField(blank=True, null=True)
+    accepted_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='accepted_by',blank=True, null=True)
 
     class Meta:
+
         managed = False
         db_table = 'examinations'
 
