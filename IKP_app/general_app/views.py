@@ -35,4 +35,5 @@ def main(request):
 
 def check_password(request):
     passwd = make_password('admin')
-    return HttpResponse(passwd)
+    passwd2 = make_password('123')
+    return HttpResponse(str('admin: = ' + passwd + '\n     123: = ' + passwd2))

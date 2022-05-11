@@ -36,9 +36,9 @@ class Appointments(models.Model):
     nfz = models.BooleanField()
     recommendations = models.TextField(blank=True, null=True)
     accepted_at = models.DateTimeField(blank=True, null=True)
-    accepted_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='accepted_by', blank=True, null=True, related_name='accepted_HospitalStaff')
-    updated_at = models.DateTimeField(blank=True, null=True )
-    updated_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='updated_by', blank=True, null=True, related_name='updated_HospitalStaff')
+    accepted_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='accepted_by', blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
+    updated_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='updated_by', blank=True, null=True)
 
     class Meta:
         managed = False
@@ -302,9 +302,9 @@ class Patient(models.Model):
     country = models.ForeignKey(DCountry, models.DO_NOTHING, db_column='country')
     birthdate = models.DateField()
     created_at = models.DateTimeField()
-    created_by = models.ForeignKey(HospitalStaff, models.DO_NOTHING, db_column='created_by', related_name='created_HospitalStaff_patient')
+    created_by = models.ForeignKey(HospitalStaff, models.DO_NOTHING, db_column='created_by')
     updated_at = models.DateTimeField(blank=True, null=True)
-    updated_by = models.ForeignKey(HospitalStaff, models.DO_NOTHING, db_column='updated_by', blank=True, null=True, related_name='updated_HospitalStaff_patient')
+    updated_by = models.ForeignKey(HospitalStaff, models.DO_NOTHING, db_column='updated_by', blank=True, null=True)
 
     class Meta:
         managed = False
