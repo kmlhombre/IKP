@@ -3,9 +3,8 @@
     Examinations:
     <table class="table">
         <tr>
-            <th scope="col">id</th>
-            <th scope="col">patient pesel</th>
-            <th scope="col">document scan</th>
+            <th scope="col"></th>
+            <th scope="col">Opis</th>
             <th scope="col">document type</th>
             <th scope="col">uploaded at</th>
             <th scope="col">uploaded by</th>
@@ -14,9 +13,13 @@
         </tr>
             {% for i in exams %}
             <tr>
-                <td><form action="examination" method="post">{% csrf_token %}<input type="submit" name="examination_id" value="{{ i.id}}"><input type="hidden" value="{{ i.id}}"></form>></td>
-                <td>{{ i.patient_pesel.pesel}}</td>
-                <td>{{ i.document_scan}}</td>
+                <td>
+                    <form action="examination" method="post">{% csrf_token %}
+                        <input type="submit" value="Przejdź do badania">
+                        <input type="hidden" name="examination_id" value="{{ i.id}}">
+                    </form>
+
+                <td>{{ i.description}}</td>
                 <td>{{ i.document_type}}</td>
                 <td>{{ i.uploaded_at}}</td>
                 <td>{{ i.uploaded_by.id}}</td>

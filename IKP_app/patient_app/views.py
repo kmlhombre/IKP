@@ -67,12 +67,13 @@ def appointments(request):
     return render(request, 'appointments.html', {'appointments': appointments})
 
 
-def examination_single(request, examination_id):
+def examination_single(request):
     examination = None
     # Czy zalogowany
     try:
         if request.user.is_authenticated:
             # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
+            examination_id = request.POST.get("examination_id")
             logged_patient = Patient.objects.get(user=request.user.id)
             examination = Examinations.objects.filter(id=examination_id).filter(patient_pesel=logged_patient)
             examination = examination[0] if examination is not None else None
@@ -83,7 +84,7 @@ def examination_single(request, examination_id):
     string_index = pdf_path.find('/examination/') + 13
     pdf_path = pdf_path[:string_index] + 'file/' + pdf_path[string_index:]
     print(pdf_path, '\n')
-    return render(request, 'examination_single.html', {'exam': examination, 'pdf_path': pdf_path})
+    return render(request, 'examination.html', {'exam': examination, 'pdf_path': pdf_path})
 
 
 def examination_file(request, examination_id):
