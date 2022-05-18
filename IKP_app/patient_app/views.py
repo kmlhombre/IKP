@@ -1,3 +1,4 @@
+from django.db.models.base import ObjectDoesNotExist
 from django.http import Http404, FileResponse
 from django.shortcuts import render
 
@@ -11,12 +12,16 @@ from general_app.models import *
 def examinations(request):
     examinations = None
     # Czy zalogowany
-    if request.user.is_authenticated:
-        # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
-        logged_patient = Patient.objects.get(user=request.user.id)
-        if logged_patient != None:
-            # Pobranie z BD wyników, w których pesel odnosi się do zalogowanego pacjenta
-            examinations = Examinations.objects.filter(patient_pesel=logged_patient)
+    try:
+        if request.user.is_authenticated:
+            # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
+            logged_patient = Patient.objects.get(user=request.user.id)
+            if logged_patient != None:
+                # Pobranie z BD wyników, w których pesel odnosi się do zalogowanego pacjenta
+                examinations = Examinations.objects.filter(patient_pesel=logged_patient)
+    except ObjectDoesNotExist:
+        # TODO handle error
+        print("Logged user not in 'Patient' table")
     return render(request, 'examinations.html', {'exams': examinations})
 
 
@@ -31,23 +36,31 @@ def departments(request):
 def appointments(request):
     appointments = None
     # Czy zalogowany
-    if request.user.is_authenticated:
-        # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
-        logged_patient = Patient.objects.get(user=request.user)
-        if logged_patient != None:
-            # Pobranie z BD wyników, w których pesel odnosi się do zalogowanego pacjenta
-            appointments = Appointments.objects.filter(patient_pesel=logged_patient)
+    try:
+        if request.user.is_authenticated:
+            # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
+            logged_patient = Patient.objects.get(user=request.user)
+            if logged_patient != None:
+                # Pobranie z BD wyników, w których pesel odnosi się do zalogowanego pacjenta
+                appointments = Appointments.objects.filter(patient_pesel=logged_patient)
+    except ObjectDoesNotExist:
+        # TODO handle error
+        print("Logged user not in 'Patient' table")
     return render(request, 'appointments.html', {'appointments': appointments})
 
 
 def examination_single(request, examination_id):
     examination = None
     # Czy zalogowany
-    if request.user.is_authenticated:
-        # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
-        logged_patient = Patient.objects.get(user=request.user.id)
-        examination = Examinations.objects.filter(id=examination_id).filter(patient_pesel=logged_patient)
-        examination = examination[0] if examination is not None else None
+    try:
+        if request.user.is_authenticated:
+            # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
+            logged_patient = Patient.objects.get(user=request.user.id)
+            examination = Examinations.objects.filter(id=examination_id).filter(patient_pesel=logged_patient)
+            examination = examination[0] if examination is not None else None
+    except ObjectDoesNotExist:
+        # TODO handle error
+        print("Logged user not in 'Patient' table")
     pdf_path = request.build_absolute_uri()
     string_index = pdf_path.find('/examination/') + 13
     pdf_path = pdf_path[:string_index] + 'file/' + pdf_path[string_index:]
@@ -58,11 +71,15 @@ def examination_single(request, examination_id):
 def examination_file(request, examination_id):
     examination = None
     # Czy zalogowany
-    if request.user.is_authenticated:
-        # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
-        logged_patient = Patient.objects.get(user=request.user.id)
-        examination = Examinations.objects.filter(id=examination_id).filter(patient_pesel=logged_patient)
-        examination = examination[0] if examination is not None else None
+    try:
+        if request.user.is_authenticated:
+            # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
+            logged_patient = Patient.objects.get(user=request.user.id)
+            examination = Examinations.objects.filter(id=examination_id).filter(patient_pesel=logged_patient)
+            examination = examination[0] if examination is not None else None
+    except ObjectDoesNotExist:
+        # TODO handle error
+        print("Logged user not in 'Patient' table")
     try:
         return FileResponse(open(examination.document_scan, 'rb'), content_type='application/pdf')
     except FileNotFoundError:
