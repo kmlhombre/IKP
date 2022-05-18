@@ -13,8 +13,16 @@
             <th scope="col">accepted by</th>
         </tr>
             {% for i in exams %}
-            <tr><td>{{ i.id}}</td><td>{{ i.patient_pesel.pesel}}</td><td>{{ i.document_scan}}</td><td>{{ i.document_type}}</td>
-                <td>{{ i.uploaded_at}}</td><td>{{ i.uploaded_by.id}}</td><td>{{ i.accepted_at}}</td><td>{{ i.accepted_by.id}}</td></tr>
+            <tr>
+                <td><form action="examination" method="post">{% csrf_token %}<input type="submit" name="examination_id" value="{{ i.id}}"><input type="hidden" value="{{ i.id}}"></form>></td>
+                <td>{{ i.patient_pesel.pesel}}</td>
+                <td>{{ i.document_scan}}</td>
+                <td>{{ i.document_type}}</td>
+                <td>{{ i.uploaded_at}}</td>
+                <td>{{ i.uploaded_by.id}}</td>
+                <td>{{ i.accepted_at}}</td>
+                <td>{{ i.accepted_by.id}}</td>
+            </tr>
             {% endfor %}
     </table>
 {% endblock %}
