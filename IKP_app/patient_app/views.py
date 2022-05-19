@@ -1,3 +1,5 @@
+import os
+
 from django.db.models.base import ObjectDoesNotExist
 from django.http import Http404, FileResponse
 from django.shortcuts import render
@@ -101,13 +103,16 @@ def examination_file(request):
     except ObjectDoesNotExist:
         # TODO handle error
         print("Logged user not in 'Patient' table")
+    PROJECT_PATH = os.path.abspath(os.path.dirname(__name__))
+    document_path = (PROJECT_PATH + '/examinations/' + examination.document_scan).replace('\\', '/')
+    print("\n\n", document_path, "\n\n")
     try:
         if examination.document_type == 'pdf':
             examination_type = 'application/pdf'
         elif examination.document_type == 'jpg':
             examination_type = 'image/jpg'
         else:
-            return FileResponse(open(examination.document_scan, 'rb'))
-        return FileResponse(open(examination.document_scan, 'rb'), content_type=examination_type)
+            return FileResponse(open(document_path, 'rb'))
+        return FileResponse(open(document_path, 'rb'), content_type=examination_type)
     except FileNotFoundError:
         raise Http404()
