@@ -1,7 +1,6 @@
 from django.db.models.base import ObjectDoesNotExist
 from django.http import Http404, FileResponse
 from django.shortcuts import render
-import html
 
 from general_app.models import *
 
@@ -103,20 +102,12 @@ def examination_file(request):
         # TODO handle error
         print("Logged user not in 'Patient' table")
     try:
-        return FileResponse(open(examination.document_scan, 'rb'), content_type='application/pdf')
+        if examination.document_type == 'pdf':
+            examination_type = 'application/pdf'
+        elif examination.document_type == 'jpg':
+            examination_type = 'image/jpg'
+        else:
+            return FileResponse(open(examination.document_scan, 'rb'))
+        return FileResponse(open(examination.document_scan, 'rb'), content_type=examination_type)
     except FileNotFoundError:
         raise Http404()
-
-
-# Helper functions
-def html_escape(input_string):
-    output_string = html.escape(input_string, quote=True)
-    output_string = output_string.replace('/', '%2F')
-    return output_string
-
-
-def html_unescape(input_string):
-    output_string = input_string.replace('%2F', '/')
-    output_string = html.unescape(output_string)
-    print("\n", input_string, "\n", output_string)
-    return output_string
