@@ -1,6 +1,7 @@
 from django.db.models.base import ObjectDoesNotExist
 from django.http import Http404, FileResponse
 from django.shortcuts import render
+import html
 
 from general_app.models import *
 
@@ -17,6 +18,7 @@ def examinations(request):
             # Pobranie z BD wyników, w których pesel odnosi się do zalogowanego pacjenta
             examinations = Examinations.objects.filter(patient_pesel=logged_patient_id)
     return render(request, 'examinations.html', {'exams': examinations})
+
 
 def examination(request):
     '''if request.POST:
@@ -51,6 +53,7 @@ def departments(request):
     # Zwraca stronę html z oddziałami
     return render(request, 'departments.html', {'departments': departments})
 
+
 def appointments(request):
     appointments = None
     # Czy zalogowany
@@ -80,21 +83,21 @@ def examination_single(request):
     except ObjectDoesNotExist:
         # TODO handle error
         print("Logged user not in 'Patient' table")
-    pdf_path = request.build_absolute_uri()
-    string_index = pdf_path.find('/examination/') + 13
-    pdf_path = pdf_path[:string_index] + 'file/' + pdf_path[string_index:]
+    pdf_path = request.build_absolute_uri() + "/file?hash=" + examination.document_scan
     print(pdf_path, '\n')
     return render(request, 'examination.html', {'exam': examination, 'pdf_path': pdf_path})
 
 
-def examination_file(request, examination_id):
+def examination_file(request):
     examination = None
+    examination_document = request.GET.get('hash', '')
     # Czy zalogowany
     try:
         if request.user.is_authenticated:
             # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
             logged_patient = Patient.objects.get(user=request.user.id)
-            examination = Examinations.objects.filter(id=examination_id).filter(patient_pesel=logged_patient)
+            examination = Examinations.objects.filter(document_scan=examination_document)\
+                .filter(patient_pesel=logged_patient)
             examination = examination[0] if examination is not None else None
     except ObjectDoesNotExist:
         # TODO handle error
@@ -103,3 +106,17 @@ def examination_file(request, examination_id):
         return FileResponse(open(examination.document_scan, 'rb'), content_type='application/pdf')
     except FileNotFoundError:
         raise Http404()
+
+
+# Helper functions
+def html_escape(input_string):
+    output_string = html.escape(input_string, quote=True)
+    output_string = output_string.replace('/', '%2F')
+    return output_string
+
+
+def html_unescape(input_string):
+    output_string = input_string.replace('%2F', '/')
+    output_string = html.unescape(output_string)
+    print("\n", input_string, "\n", output_string)
+    return output_string

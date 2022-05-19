@@ -10,6 +10,6 @@ urlpatterns = [
     path('departments/', views.departments),
     path('appointments/', views.appointments),
     #path('examination/<examination_id>', views.examination_single),
-    path('examination/file/<examination_id>', views.examination_file)
+    path('examinations/examination/file', views.examination_file)
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_URL)
