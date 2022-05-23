@@ -15,6 +15,6 @@ urlpatterns = [
     path('examination/file/<examination_id>', views.examination_file),
     path('examinations/add-examination', views.add_examination),
     path('examinations/add-examination/add-examination-process', views.add_examination_process),
-
+    path('examinations/examination/file', views.examination_file)
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_URL)

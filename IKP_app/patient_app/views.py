@@ -1,3 +1,5 @@
+import os
+
 from django.db.models.base import ObjectDoesNotExist
 from django.http import Http404, FileResponse
 from django.shortcuts import render
@@ -30,6 +32,7 @@ def examinations(request):
             # Pobranie z BD wyników, w których pesel odnosi się do zalogowanego pacjenta
             examinations = Examinations.objects.filter(patient_pesel=logged_patient_id)
     return render(request, 'examinations.html', {'exams': examinations})
+
 
 def examination(request):
     '''if request.POST:
@@ -64,6 +67,7 @@ def departments(request):
     # Zwraca stronę html z oddziałami
     return render(request, 'departments.html', {'departments': departments})
 
+
 def appointments(request):
     appointments = None
     # Czy zalogowany
@@ -93,26 +97,35 @@ def examination_single(request):
     except ObjectDoesNotExist:
         # TODO handle error
         print("Logged user not in 'Patient' table")
-    pdf_path = request.build_absolute_uri()
-    string_index = pdf_path.find('/examination/') + 13
-    pdf_path = pdf_path[:string_index] + 'file/' + pdf_path[string_index:]
+    pdf_path = request.build_absolute_uri() + "/file?hash=" + examination.document_scan
     print(pdf_path, '\n')
     return render(request, 'examination.html', {'exam': examination, 'pdf_path': pdf_path})
 
 
-def examination_file(request, examination_id):
+def examination_file(request):
     examination = None
+    examination_document = request.GET.get('hash', '')
     # Czy zalogowany
     try:
         if request.user.is_authenticated:
             # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
             logged_patient = Patient.objects.get(user=request.user.id)
-            examination = Examinations.objects.filter(id=examination_id).filter(patient_pesel=logged_patient)
+            examination = Examinations.objects.filter(document_scan=examination_document)\
+                .filter(patient_pesel=logged_patient)
             examination = examination[0] if examination is not None else None
     except ObjectDoesNotExist:
         # TODO handle error
         print("Logged user not in 'Patient' table")
+    PROJECT_PATH = os.path.abspath(os.path.dirname(__name__))
+    document_path = (PROJECT_PATH + '/examinations/' + examination.document_scan).replace('\\', '/')
+    print("\n\n", document_path, "\n\n")
     try:
-        return FileResponse(open(examination.document_scan, 'rb'), content_type='application/pdf')
+        if examination.document_type == 'pdf':
+            examination_type = 'application/pdf'
+        elif examination.document_type == 'jpg':
+            examination_type = 'image/jpg'
+        else:
+            return FileResponse(open(document_path, 'rb'))
+        return FileResponse(open(document_path, 'rb'), content_type=examination_type)
     except FileNotFoundError:
         raise Http404()
