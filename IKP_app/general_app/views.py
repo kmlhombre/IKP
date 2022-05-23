@@ -12,6 +12,8 @@ from general_app.models import *
 
 
 def index(request):
+    if request.user.is_authenticated:
+        return HttpResponseRedirect('/patient/')
     return render(request, 'index.html')
 
 
@@ -26,7 +28,7 @@ def login_user(request):
         if user is not None:
             if user.is_active:
                 login(request, user)
-                return HttpResponseRedirect('/patient/examinations')
+                return HttpResponseRedirect('/patient/')
 
     return render(request, 'login.html')
 

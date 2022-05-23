@@ -1,6 +1,7 @@
 from django.db.models.base import ObjectDoesNotExist
 from django.http import Http404, FileResponse
 from django.shortcuts import render
+from django.contrib.auth import logout
 
 from general_app.models import *
 
@@ -8,6 +9,18 @@ from general_app.models import *
 # Create your views here.
 # Wyświetlanie informacji o wynikach dla obecnie zalogowanego pacjenta
 
+def add_examination_process(request):
+    examination = Examinations.objects.create();
+
+def add_examination(request):
+    return render(request, 'add-examination.html')
+
+def logout_page(request):
+    logout(request)
+    return render(request, 'logout-success.html')
+
+def index(request):
+    return render(request, 'patient-index.html')
 
 def examinations(request):
     examinations = None
