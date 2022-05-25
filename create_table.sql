@@ -180,7 +180,7 @@ CREATE TABLE IF NOT EXISTS public.d_region
 
 CREATE TABLE IF NOT EXISTS public.d_country
 (
-	country varchar(40) primary key
+	country varchar(50) primary key
 );
 
 CREATE TABLE IF NOT EXISTS public.departments
@@ -234,7 +234,7 @@ CREATE TABLE IF NOT EXISTS public.patients
 	apartment_number varchar(10),
 	city varchar(60) NOT NULL,
 	region varchar(30) NOT NULL references public.d_region(region),
-	country varchar(40) NOT NULL references public.d_country(country),
+	country varchar(50) NOT NULL references public.d_country(country),
 	birthdate date NOT NULL,
 	created_at timestamp NOT NULL,
 	created_by int NOT NULL references public.hospital_staff(id),
@@ -258,7 +258,7 @@ CREATE TABLE IF NOT EXISTS public.patients_old
 	apartment_number varchar(10),
 	city varchar(60),
 	region varchar(30) references public.d_region(region),
-	country varchar(40) references public.d_country(country),
+	country varchar(50) references public.d_country(country),
 	birthdate date,
 	email varchar(50),
 	modified_by int references public.hospital_staff(id),
