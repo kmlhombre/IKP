@@ -6,10 +6,10 @@ import random
 
 conn = psycopg2.connect(
     user='postgres',
-    password='postgres',
+    password='admin',
     host='localhost',
     port=5432,
-    database='ikp'
+    database='ikp_hcp'
 )
 
 query_auth_user = '''

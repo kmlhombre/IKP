@@ -1,9 +1,8 @@
 {% extends "website-base.html" %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="pl">
+    <a class="btn btn-primary" href="add-appointment" role="button">Umów wizytę</a>
     Appointments:
-    <table border="1">
+    <table class="table">
         <tr>
             <th>id</th>
             <th>patient pesel</th>
@@ -18,5 +17,4 @@
                 <th>{{ i.room.id}}</th><th>{{ i.doctor.id}}</th><th>{{ i.accepted_by.id}}</th></tr>
             {% endfor %}
     </table>
-</html>
 {% endblock %}

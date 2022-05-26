@@ -1,0 +1,54 @@
+{% extends "website-base.html" %}
+{% block content %}
+
+
+
+<div class="row">
+    <div class="col-0 col-lg-3"></div>
+    <div class="col-12 col-lg-6">
+        <form class="form-horizontal" action="add-appointment-process" method="post">{% csrf_token %}
+
+            <div class="form-group">
+                <div class="col-xs-1">
+                    <label for="departments" >Wybierz oddział</label>
+                </div>
+
+                <select class="form-control input-lg" name="departments" id="departments" data-live-search="true">
+                    {% for d in departments %}
+                    <option value="{{d.department}}">{{d.department}}</option>
+                    {% endfor %}
+                </select>
+
+
+                <br>
+
+
+                <div class="col-xs-1">
+                    <label for="types" >Wybierz typ wizyty</label>
+                </div>
+                <select class="form-control input-lg" name="appointment_type" id="types" data-live-search="true">
+                    {% for t in types %}
+                        <option value="{{t.appointment_type}}">{{t.appointment_type}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+
+            </div>
+
+            <div class="form-group">
+                </br>
+                    <input class="form-control" type="submit" value="Dalej">
+                </br>
+                    <a href="/patient/examination" class="btn btn-primary" style="width: 100%;">Wróć</a>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+
+
+
+{% endblock %}

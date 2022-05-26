@@ -10,9 +10,23 @@ from general_app.models import *
 
 # Create your views here.
 # Wyświetlanie informacji o wynikach dla obecnie zalogowanego pacjenta
+def add_appointment_process(request):
+    appointment_type = request.POST.get('appointment_type')
+    department = request.POST.get('departments')
+
+    timetable = Timetable.objects.filter(appointment_type=appointment_type, department=department)
+
+
+    return render(request, 'add-appointment-process.html', {'department':department,'appointment_type':appointment_type, 'timetable':timetable })
+
+
+def add_appointment(request):
+    departments = Departments.objects.filter()
+    appointment_types = DAppointmentType.objects.filter()
+    return render(request, 'add-appointment.html.', {'departments': departments, 'types':appointment_types})
 
 def add_examination_process(request):
-    examination = Examinations.objects.create();
+    examination = Examinations.objects.create()
 
 def add_examination(request):
     return render(request, 'add-examination.html')
@@ -27,7 +41,7 @@ def index(request):
 def examinations(request):
     examinations = None
     if request.user.is_authenticated:
-        logged_patient_id = Patient.objects.get(user=request.user.id)
+        logged_patient_id = Patients.objects.get(user=request.user.id)
         if logged_patient_id != None:
             # Pobranie z BD wyników, w których pesel odnosi się do zalogowanego pacjenta
             examinations = Examinations.objects.filter(patient_pesel=logged_patient_id)
@@ -35,22 +49,10 @@ def examinations(request):
 
 
 def examination(request):
-    '''if request.POST:
-        examination_id = int(request.POST['examination_id'])
-        if examination_id is None:
-            return HttpResponseRedirect('/examinations/')
-
-    examination = None
-    if request.user.is_authenticated:
-        logged_patient_id = Patient.objects.get(user=request.user.id).pesel
-        if logged_patient_id is not None:
-            # Pobranie z BD wyników, w których pesel odnosi się do zalogowanego pacjenta
-            examinations = Examinations.objects.filter(patient_pesel=logged_patient_id, id=examination_id)'''
-    # Czy zalogowany
     try:
         if request.user.is_authenticated:
             # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
-            logged_patient = Patient.objects.get(user=request.user.id)
+            logged_patient = Patients.objects.get(user=request.user.id)
             if logged_patient != None:
                 # Pobranie z BD wyników, w których pesel odnosi się do zalogowanego pacjenta
                 examinations = Examinations.objects.filter(patient_pesel=logged_patient)
@@ -74,7 +76,7 @@ def appointments(request):
     try:
         if request.user.is_authenticated:
             # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
-            logged_patient = Patient.objects.get(user=request.user)
+            logged_patient = Patients.objects.get(user=request.user.id)
             if logged_patient != None:
                 # Pobranie z BD wyników, w których pesel odnosi się do zalogowanego pacjenta
                 appointments = Appointments.objects.filter(patient_pesel=logged_patient)

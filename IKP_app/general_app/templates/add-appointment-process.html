@@ -1,0 +1,106 @@
+{% extends "website-base.html" %}
+{% block content %}
+
+<script>
+    function validate_checkbox()
+    {
+        if(document.getElementById('checkbox').checked)
+        {
+            document.getElementById('file').setAttribute('disabled','');
+        }
+        else
+        {
+            document.getElementById('file').removeAttribute('disabled');
+        }
+    }
+</script>
+
+<style>
+.labl {
+    display : block;
+    width: 100%;
+}
+.labl > input{ /* HIDE RADIO */
+    visibility: hidden; /* Makes input not-clickable */
+    position: absolute; /* Remove input from document flow */
+}
+.labl > input + div{ /* DIV STYLES */
+    cursor:pointer;
+    border:2px solid transparent;
+    padding: 5px;
+    border-radius:5px;
+}
+.labl > input:checked + div{ /* (RADIO CHECKED) DIV STYLES */
+    background-color: #00ee00;
+    border: 1px solid #006600;
+}
+
+</style>
+
+<div class="row">
+    <div class="col-12" class="text-center" style="text-align:center;">
+        {{department}}:
+        {{appointment_type}}
+    </div>
+</div>
+<div class="row">
+    <div class="col-0 col-lg-3"></div>
+    <div class="col-12 col-lg-6">
+
+        <form class="form-horizontal" action="add-appointment-process" method="post">{% csrf_token %}
+
+            <div class="form-group">
+                <div class="col-xs-1">
+                    <label for="file">Dodaj skierowanie</label>
+                </div>
+                    <input id="file" name="file" type="file"/>
+                <br>
+                <br>
+
+                <div class="col-xs-1">
+                    <input class="form-check-input" id="checkbox" name="checkbox" type="checkbox" onclick="validate_checkbox()"/>
+                    <label class="form-check-label" for="checkbox" >Nie posiadam skierowania</label>
+                </div>
+
+            </div>
+            <br>
+            Wybierz slot
+            <table class="table">
+                <div class="form-group">
+                    <tr>
+                        <th>Data Dostępne miejsca</th>
+                    </tr>
+                    {%for t in timetable%}
+                    <tr>
+                        <td>
+                            <label class="labl">
+                                <input type="radio" name="appointment_date" value="{{t.opening_time}}">
+                                <div>
+                                    {{t.opening_time}} Dostępne miejsca: {{t.free_slots}}
+                                </div>
+                            </label>
+                        </td>
+                    </tr>
+
+
+                    {% endfor %}
+
+            </div>
+            </table>
+
+
+            <div class="form-group">
+                </br>
+                    <input class="form-control" type="submit" value="Dalej">
+                </br>
+                    <a href="/patient/appointments" class="btn btn-primary" style="width: 100%;">Wróć</a>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+
+
+
+{% endblock %}
