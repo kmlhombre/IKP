@@ -3,14 +3,14 @@
 #   * Rearrange models' order
 #   * Make sure each model has one field with primary_key=True
 #   * Make sure each ForeignKey has `on_delete` set to the desired behavior.
-#   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
+#   * Remove `managed = True` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class AppointmentNotifications(models.Model):
     id = models.IntegerField(primary_key=True)
-    patient_pesel = models.ForeignKey('Patient', models.DO_NOTHING, db_column='patient_pesel')
     email = models.CharField(max_length=50, blank=True, null=True)
     phone_number = models.CharField(max_length=14, blank=True, null=True)
     notification_text = models.TextField()
@@ -19,13 +19,13 @@ class AppointmentNotifications(models.Model):
     appointment = models.ForeignKey('Appointments', models.DO_NOTHING)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'appointment_notifications'
 
 
 class Appointments(models.Model):
     id = models.IntegerField(primary_key=True)
-    patient_pesel = models.ForeignKey('Patient', models.DO_NOTHING, db_column='patient_pesel')
+    patient_pesel = models.ForeignKey('Patients', models.DO_NOTHING, db_column='patient_pesel')
     appointment_date = models.DateTimeField(blank=True, null=True)
     department = models.ForeignKey('Departments', models.DO_NOTHING, db_column='department')
     room = models.ForeignKey('Rooms', models.DO_NOTHING, db_column='room', blank=True, null=True)
@@ -37,11 +37,11 @@ class Appointments(models.Model):
     recommendations = models.TextField(blank=True, null=True)
     accepted_at = models.DateTimeField(blank=True, null=True)
     accepted_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='accepted_by', blank=True, null=True, related_name='accepted_HospitalStaff')
-    updated_at = models.DateTimeField(blank=True, null=True )
+    updated_at = models.DateTimeField(blank=True, null=True)
     updated_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='updated_by', blank=True, null=True, related_name='updated_HospitalStaff')
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'appointments'
 
 
@@ -50,7 +50,7 @@ class AuthGroup(models.Model):
     name = models.CharField(unique=True, max_length=150)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'auth_group'
 
 
@@ -60,7 +60,7 @@ class AuthGroupPermissions(models.Model):
     permission = models.ForeignKey('AuthPermission', models.DO_NOTHING)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'auth_group_permissions'
         unique_together = (('group', 'permission'),)
 
@@ -72,7 +72,7 @@ class AuthPermission(models.Model):
     codename = models.CharField(max_length=100)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'auth_permission'
         unique_together = (('content_type', 'codename'),)
 
@@ -89,12 +89,13 @@ class AuthUser(models.Model):
     is_staff = models.BooleanField()
     is_active = models.BooleanField()
     date_joined = models.DateTimeField()
+
     has_to_change_password = models.BooleanField()
     last_password_change = models.DateTimeField()
     password_expires = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'auth_user'
 
 
@@ -104,7 +105,7 @@ class AuthUserGroups(models.Model):
     group = models.ForeignKey(AuthGroup, models.DO_NOTHING)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'auth_user_groups'
         unique_together = (('user', 'group'),)
 
@@ -115,14 +116,14 @@ class AuthUserUserPermissions(models.Model):
     permission = models.ForeignKey(AuthPermission, models.DO_NOTHING)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'auth_user_user_permissions'
         unique_together = (('user', 'permission'),)
 
 
 class CampaignNotifications(models.Model):
     id = models.IntegerField(primary_key=True)
-    patient_pesel = models.ForeignKey('Patient', models.DO_NOTHING, db_column='patient_pesel')
+    patient_pesel = models.ForeignKey('Patients', models.DO_NOTHING, db_column='patient_pesel')
     email = models.CharField(max_length=50, blank=True, null=True)
     phone_number = models.CharField(max_length=14, blank=True, null=True)
     notification_text = models.TextField()
@@ -131,12 +132,21 @@ class CampaignNotifications(models.Model):
     campaign = models.ForeignKey('Campaigns', models.DO_NOTHING)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'campaign_notifications'
+
+
+class CampaignTypes(models.Model):
+    camp_name = models.CharField(primary_key=True, max_length=20)
+
+    class Meta:
+        managed = True
+        db_table = 'campaign_types'
 
 
 class Campaigns(models.Model):
     id = models.IntegerField(primary_key=True)
+    camp_name = models.ForeignKey(CampaignTypes, models.DO_NOTHING, db_column='camp_name', blank=True, null=True)
     age_from = models.IntegerField(blank=True, null=True)
     age_to = models.IntegerField(blank=True, null=True)
     gender = models.ForeignKey('DGender', models.DO_NOTHING, db_column='gender', blank=True, null=True)
@@ -145,7 +155,7 @@ class Campaigns(models.Model):
     description = models.TextField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'campaigns'
 
 
@@ -153,7 +163,7 @@ class DAddressPrefix(models.Model):
     prefix = models.CharField(primary_key=True, max_length=3)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'd_address_prefix'
 
 
@@ -161,15 +171,15 @@ class DAppointmentType(models.Model):
     appointment_type = models.CharField(primary_key=True, max_length=40)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'd_appointment_type'
 
 
 class DCountry(models.Model):
-    country = models.CharField(primary_key=True, max_length=40)
+    country = models.CharField(primary_key=True, max_length=50)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'd_country'
 
 
@@ -177,7 +187,7 @@ class DGender(models.Model):
     gender = models.CharField(primary_key=True, max_length=3)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'd_gender'
 
 
@@ -185,7 +195,7 @@ class DRegion(models.Model):
     region = models.CharField(primary_key=True, max_length=30)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'd_region'
 
 
@@ -193,7 +203,7 @@ class DStaffRole(models.Model):
     role_name = models.CharField(primary_key=True, max_length=25)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'd_staff_role'
 
 
@@ -201,7 +211,7 @@ class DStaffTitle(models.Model):
     title = models.CharField(primary_key=True, max_length=25)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'd_staff_title'
 
 
@@ -209,7 +219,7 @@ class Departments(models.Model):
     department = models.CharField(primary_key=True, max_length=100)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'departments'
 
 
@@ -224,7 +234,7 @@ class DjangoAdminLog(models.Model):
     user = models.ForeignKey(AuthUser, models.DO_NOTHING)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'django_admin_log'
 
 
@@ -234,7 +244,7 @@ class DjangoContentType(models.Model):
     model = models.CharField(max_length=100)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'django_content_type'
         unique_together = (('app_label', 'model'),)
 
@@ -246,7 +256,7 @@ class DjangoMigrations(models.Model):
     applied = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'django_migrations'
 
 
@@ -256,24 +266,22 @@ class DjangoSession(models.Model):
     expire_date = models.DateTimeField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'django_session'
 
 
 class Examinations(models.Model):
     id = models.IntegerField(primary_key=True)
-    patient_pesel = models.ForeignKey('Patient', models.DO_NOTHING, db_column='patient_pesel')
+    patient_pesel = models.ForeignKey('Patients', models.DO_NOTHING, db_column='patient_pesel')
     document_scan = models.TextField()
     document_type = models.TextField()
     uploaded_at = models.DateTimeField()
     uploaded_by = models.ForeignKey(AuthUser, models.DO_NOTHING, db_column='uploaded_by')
-    accepted_at = models.DateTimeField(blank=True, null=True)
+    accepted_at = models.DateTimeField()
     accepted_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='accepted_by',blank=True, null=True)
-    description = models.TextField()
 
     class Meta:
-
-        managed = False
+        managed = True
         db_table = 'examinations'
 
 
@@ -285,11 +293,44 @@ class HospitalStaff(models.Model):
     title = models.ForeignKey(DStaffTitle, models.DO_NOTHING, db_column='title', blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'hospital_staff'
 
 
-class Patient(models.Model):
+class PatientPermissionsModulePacjenci(models.Model):
+    id_pacjent = models.IntegerField(primary_key=True)
+    pesel = models.ForeignKey('Patients', models.DO_NOTHING, db_column='pesel', blank=True, null=True)
+    imie = models.CharField(max_length=40)
+    nazwisko = models.CharField(max_length=40)
+    zrodlo = models.CharField(max_length=10, blank=True, null=True)
+    wprowadzil = models.CharField(max_length=20, blank=True, null=True)
+    data_wprow = models.DateField()
+    zmodyfikowal = models.CharField(max_length=20, blank=True, null=True)
+    data_akt = models.DateField(blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'patient_permissions_module_pacjenci'
+
+
+class PatientPermissionsModuleZgody(models.Model):
+    id_zgoda = models.IntegerField(primary_key=True)
+    id_pacjent = models.ForeignKey(PatientPermissionsModulePacjenci, models.DO_NOTHING, db_column='id_pacjent', blank=True, null=True)
+    rodzaj = models.CharField(max_length=20)
+    wazna_od = models.DateField()
+    wazna_do = models.DateField(blank=True, null=True)
+    skan = models.BinaryField()
+    wprowadzil = models.CharField(max_length=20)
+    data_wprow = models.DateField()
+    usunal = models.CharField(max_length=20, blank=True, null=True)
+    data_usun = models.DateField(blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'patient_permissions_module_zgody'
+
+
+class Patients(models.Model):
     pesel = models.CharField(primary_key=True, max_length=11)
     user = models.ForeignKey(AuthUser, models.DO_NOTHING)
     second_name = models.CharField(max_length=25, blank=True, null=True)
@@ -309,11 +350,11 @@ class Patient(models.Model):
     updated_by = models.ForeignKey(HospitalStaff, models.DO_NOTHING, db_column='updated_by', blank=True, null=True, related_name='updated_HospitalStaff_patient')
 
     class Meta:
-        managed = False
-        db_table = 'patient'
+        managed = True
+        db_table = 'patients'
 
 
-class PatientOld(models.Model):
+class PatientsOld(models.Model):
     id = models.IntegerField(primary_key=True)
     pesel = models.CharField(max_length=11)
     first_name = models.CharField(max_length=25, blank=True, null=True)
@@ -335,42 +376,9 @@ class PatientOld(models.Model):
     valid_to = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        managed = False
-        db_table = 'patient_old'
+        managed = True
+        db_table = 'patients_old'
         unique_together = (('id', 'pesel'),)
-
-
-class PatientPermissionsModulePacjenci(models.Model):
-    id_pacjent = models.IntegerField(primary_key=True)
-    pesel = models.ForeignKey(Patient, models.DO_NOTHING, db_column='pesel', blank=True, null=True)
-    imie = models.CharField(max_length=40)
-    nazwisko = models.CharField(max_length=40)
-    zrodlo = models.CharField(max_length=10, blank=True, null=True)
-    wprowadzil = models.CharField(max_length=20, blank=True, null=True)
-    data_wprow = models.DateField()
-    zmodyfikowal = models.CharField(max_length=20, blank=True, null=True)
-    data_akt = models.DateField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'patient_permissions_module_pacjenci'
-
-
-class PatientPermissionsModuleZgody(models.Model):
-    id_zgoda = models.IntegerField(primary_key=True)
-    id_pacjent = models.ForeignKey(PatientPermissionsModulePacjenci, models.DO_NOTHING, db_column='id_pacjent', blank=True, null=True)
-    rodzaj = models.CharField(max_length=20)
-    wazna_od = models.DateField()
-    wazna_do = models.DateField(blank=True, null=True)
-    skan = models.BinaryField()
-    wprowadzil = models.CharField(max_length=20)
-    data_wprow = models.DateField()
-    usunal = models.CharField(max_length=20, blank=True, null=True)
-    data_usun = models.DateField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'patient_permissions_module_zgody'
 
 
 class Rooms(models.Model):
@@ -381,7 +389,7 @@ class Rooms(models.Model):
     description = models.CharField(max_length=300, blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'rooms'
 
 
@@ -394,13 +402,13 @@ class Timetable(models.Model):
     free_slots = models.IntegerField()
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'timetable'
 
 
 class UnacceptedExaminations(models.Model):
     id = models.IntegerField(primary_key=True)
-    patient_pesel = models.ForeignKey(Patient, models.DO_NOTHING, db_column='patient_pesel')
+    patient_pesel = models.ForeignKey(Patients, models.DO_NOTHING, db_column='patient_pesel')
     document_content = models.TextField()
     document_type = models.TextField()
     uploaded_at = models.DateTimeField()
@@ -409,5 +417,5 @@ class UnacceptedExaminations(models.Model):
     rejected_for = models.CharField(max_length=300, blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'unaccepted_examinations'
