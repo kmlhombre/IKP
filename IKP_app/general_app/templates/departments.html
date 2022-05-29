@@ -2,14 +2,11 @@
 {% block content %}
 <!DOCTYPE html>
 <html lang="pl">
-    Departments:
+    Oddziały:
     <table border="1">
-        <tr>
-            <th>id</th>
-            <th>name</th>
-        </tr>
+    <table class="table">
             {% for i in departments %}
-            <tr><th>{{ i.id}}</th><th>{{ i.name}}</th></tr>
+            <tr><th>{{ i.department}}</th></tr>
             {% endfor %}
     </table>
 </html>

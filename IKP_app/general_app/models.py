@@ -7,6 +7,7 @@
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
 from django.contrib.auth.models import User
+import datetime
 
 
 class AppointmentNotifications(models.Model):
@@ -38,7 +39,7 @@ class Appointments(models.Model):
     recommendations = models.TextField(blank=True, null=True)
     accepted_at = models.DateTimeField(blank=True, null=True)
     accepted_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='accepted_by', blank=True, null=True, related_name='accepted_HospitalStaff')
-    updated_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True, auto_now=True)
     updated_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='updated_by', blank=True, null=True, related_name='updated_HospitalStaff')
 
     class Meta:

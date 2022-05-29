@@ -1,4 +1,6 @@
+import base64
 import os
+import datetime
 
 from django.db.models.base import ObjectDoesNotExist
 from django.http import Http404, FileResponse
@@ -9,42 +11,72 @@ from general_app.models import *
 
 
 # Create your views here.
-# Wyświetlanie informacji o wynikach dla obecnie zalogowanego pacjenta
-def add_appointment_process(request):
+def add_appointment_finish(request):
+    appointment_type = request.POST.get('appointment_type')
+    department = request.POST.get('department')
+    suggested_date = request.POST.get('appointment_date')
+    uploaded_referral = len(request.FILES) > 0
+    if uploaded_referral:
+        referral = base64.b64encode(request.FILES['file'].read())
+    department_object = Departments.objects.get(department=department)
+    appointment_type = DAppointmentType.objects.get(appointment_type=appointment_type)
+    suggested_date = datetime.datetime.strptime(str(suggested_date).replace("a.m.", "AM").replace("p.m.", "PM"),
+                                                '%b %d, %Y, %I %p')
+
+    if request.user.is_authenticated:
+        logged_patient = Patients.objects.get(user=request.user.id)
+        if logged_patient is not None:
+            # TODO: sprawdzanie czy nfz
+            if uploaded_referral:
+                Appointments.objects.create(id=next_id(Appointments), patient_pesel=logged_patient,
+                                            department=department_object, appointment_type=appointment_type,
+                                            suggested_date=suggested_date, referral=referral, nfz=True)
+            else:
+                Appointments.objects.create(id=next_id(Appointments), patient_pesel=logged_patient, department=department_object,
+                                            appointment_type=appointment_type, suggested_date=suggested_date, nfz=True)
+    return appointments(request)
+
+
+def add_appointment_2(request):
     appointment_type = request.POST.get('appointment_type')
     department = request.POST.get('departments')
 
     timetable = Timetable.objects.filter(appointment_type=appointment_type, department=department)
 
-
-    return render(request, 'add-appointment-process.html', {'department':department,'appointment_type':appointment_type, 'timetable':timetable })
+    return render(request, 'add-appointment-2.html',
+                  {'department': department, 'appointment_type': appointment_type, 'timetable': timetable})
 
 
 def add_appointment(request):
     departments = Departments.objects.filter()
     appointment_types = DAppointmentType.objects.filter()
-    return render(request, 'add-appointment.html.', {'departments': departments, 'types':appointment_types})
+    return render(request, 'add-appointment.html.', {'departments': departments, 'types': appointment_types})
+
 
 def add_examination_process(request):
     examination = Examinations.objects.create()
 
+
 def add_examination(request):
     return render(request, 'add-examination.html')
+
 
 def logout_page(request):
     logout(request)
     return render(request, 'logout-success.html')
 
+
 def index(request):
     return render(request, 'patient-index.html')
+
 
 def examinations(request):
     examinations = None
     if request.user.is_authenticated:
-        logged_patient_id = Patients.objects.get(user=request.user.id)
-        if logged_patient_id != None:
+        logged_patient = Patients.objects.get(user=request.user.id)
+        if logged_patient is not None:
             # Pobranie z BD wyników, w których pesel odnosi się do zalogowanego pacjenta
-            examinations = Examinations.objects.filter(patient_pesel=logged_patient_id)
+            examinations = Examinations.objects.filter(patient_pesel=logged_patient)
     return render(request, 'examinations.html', {'exams': examinations})
 
 
@@ -53,7 +85,7 @@ def examination(request):
         if request.user.is_authenticated:
             # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
             logged_patient = Patients.objects.get(user=request.user.id)
-            if logged_patient != None:
+            if logged_patient is not None:
                 # Pobranie z BD wyników, w których pesel odnosi się do zalogowanego pacjenta
                 examinations = Examinations.objects.filter(patient_pesel=logged_patient)
     except ObjectDoesNotExist:
@@ -77,7 +109,7 @@ def appointments(request):
         if request.user.is_authenticated:
             # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
             logged_patient = Patients.objects.get(user=request.user.id)
-            if logged_patient != None:
+            if logged_patient is not None:
                 # Pobranie z BD wyników, w których pesel odnosi się do zalogowanego pacjenta
                 appointments = Appointments.objects.filter(patient_pesel=logged_patient)
     except ObjectDoesNotExist:
@@ -93,7 +125,7 @@ def examination_single(request):
         if request.user.is_authenticated:
             # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
             examination_id = request.POST.get("examination_id")
-            logged_patient = Patient.objects.get(user=request.user.id)
+            logged_patient = Patients.objects.get(user=request.user.id)
             examination = Examinations.objects.filter(id=examination_id).filter(patient_pesel=logged_patient)
             examination = examination[0] if examination is not None else None
     except ObjectDoesNotExist:
@@ -111,8 +143,8 @@ def examination_file(request):
     try:
         if request.user.is_authenticated:
             # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
-            logged_patient = Patient.objects.get(user=request.user.id)
-            examination = Examinations.objects.filter(document_scan=examination_document)\
+            logged_patient = Patients.objects.get(user=request.user.id)
+            examination = Examinations.objects.filter(document_scan=examination_document) \
                 .filter(patient_pesel=logged_patient)
             examination = examination[0] if examination is not None else None
     except ObjectDoesNotExist:
@@ -131,3 +163,8 @@ def examination_file(request):
         return FileResponse(open(document_path, 'rb'), content_type=examination_type)
     except FileNotFoundError:
         raise Http404()
+
+
+# Helper functions
+def next_id(model):
+    return int(model.objects.all().order_by("-id")[0].id) + 1
