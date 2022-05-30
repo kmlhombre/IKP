@@ -13,9 +13,7 @@ urlpatterns = [
     path('appointments/', views.appointments),
     path('appointments/add-appointment', views.add_appointment),
     path('appointments/add-appointment-2', views.add_appointment_2),
-    path('appointments/add-appointment-3', views.add_appointment_finish),
-    #path('examination/<examination_id>', views.examination_single),
-    path('examination/file/<examination_id>', views.examination_file),
+    path('appointments/add-appointment-3', views.add_appointment_process),
     path('examinations/add-examination', views.add_examination),
     path('examinations/add-examination-process', views.add_examination_process),
     path('examinations/examination/file', views.examination_file)

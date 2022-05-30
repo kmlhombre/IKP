@@ -1,6 +1,7 @@
 import base64
 import os
 import datetime
+import hashlib
 
 from django.db.models.base import ObjectDoesNotExist
 from django.http import Http404, FileResponse
@@ -8,10 +9,13 @@ from django.shortcuts import render
 from django.contrib.auth import logout
 
 from general_app.models import *
+from patient_app.forms import UnacceptedExaminationsForm
 
 
 # Create your views here.
-def add_appointment_finish(request):
+
+
+def add_appointment_process(request):
     appointment_type = request.POST.get('appointment_type')
     department = request.POST.get('department')
     suggested_date = request.POST.get('appointment_date')
@@ -54,7 +58,17 @@ def add_appointment(request):
 
 
 def add_examination_process(request):
-    examination = Examinations.objects.create()
+    if request.method == 'POST':
+        form = UnacceptedExaminationsForm(request.POST, request.FILES)
+        if form.is_valid() and request.user.is_authenticated:
+            logged_patient = Patients.objects.get(user=request.user.id)
+            description = request.POST.get('description')
+            document_scan = request.FILES['file']
+            document_type = document_scan.name.split('.')[-1].upper()
+            if logged_patient is not None:
+                UnacceptedExaminations.objects.create(id=next_id(UnacceptedExaminations), patient_pesel=logged_patient,
+                                                      document_content=document_scan, document_type=document_type)
+    return examinations(request)
 
 
 def add_examination(request):
@@ -151,7 +165,7 @@ def examination_file(request):
         # TODO handle error
         print("Logged user not in 'Patient' table")
     PROJECT_PATH = os.path.abspath(os.path.dirname(__name__))
-    document_path = (PROJECT_PATH + '/examinations/' + examination.document_scan).replace('\\', '/')
+    document_path = (PROJECT_PATH + '/media/examinations/' + examination.document_scan).replace('\\', '/')
     print("\n\n", document_path, "\n\n")
     try:
         if examination.document_type == 'pdf':
@@ -167,4 +181,7 @@ def examination_file(request):
 
 # Helper functions
 def next_id(model):
-    return int(model.objects.all().order_by("-id")[0].id) + 1
+    try:
+        return int(model.objects.all().order_by("-id")[0].id) + 1
+    except IndexError:
+        return 0

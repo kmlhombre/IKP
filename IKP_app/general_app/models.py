@@ -280,7 +280,7 @@ class Examinations(models.Model):
     uploaded_at = models.DateTimeField()
     uploaded_by = models.ForeignKey(AuthUser, models.DO_NOTHING, db_column='uploaded_by')
     accepted_at = models.DateTimeField()
-    accepted_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='accepted_by',blank=True, null=True)
+    accepted_by = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='accepted_by', blank=True, null=True)
 
     class Meta:
         managed = True
@@ -411,9 +411,9 @@ class Timetable(models.Model):
 class UnacceptedExaminations(models.Model):
     id = models.IntegerField(primary_key=True)
     patient_pesel = models.ForeignKey(Patients, models.DO_NOTHING, db_column='patient_pesel')
-    document_content = models.TextField()
+    document_content = models.FileField(upload_to='unaccepted_examinations')
     document_type = models.TextField()
-    uploaded_at = models.DateTimeField()
+    uploaded_at = models.DateTimeField(auto_now_add=True)
     rejected_at = models.DateTimeField(blank=True, null=True)
     rejected_by = models.ForeignKey(HospitalStaff, models.DO_NOTHING, db_column='rejected_by', blank=True, null=True)
     rejected_for = models.CharField(max_length=300, blank=True, null=True)
