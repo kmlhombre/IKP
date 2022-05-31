@@ -7,27 +7,30 @@ from django.db.models.base import ObjectDoesNotExist
 from django.http import Http404, FileResponse
 from django.shortcuts import render
 from django.contrib.auth import logout
+from django.conf import settings
 
 from general_app.models import *
-from patient_app.forms import UnacceptedExaminationsForm
+from patient_app.forms import UnacceptedExaminationsForm, AppointmentsForm
+# Comment this
+# from IKP_app.general_app.models import *
 
 
 # Create your views here.
-
-
 def add_appointment_process(request):
-    appointment_type = request.POST.get('appointment_type')
-    department = request.POST.get('department')
-    suggested_date = request.POST.get('appointment_date')
-    uploaded_referral = len(request.FILES) > 0
-    if uploaded_referral:
-        referral = base64.b64encode(request.FILES['file'].read())
-    department_object = Departments.objects.get(department=department)
-    appointment_type = DAppointmentType.objects.get(appointment_type=appointment_type)
-    suggested_date = datetime.datetime.strptime(str(suggested_date).replace("a.m.", "AM").replace("p.m.", "PM"),
-                                                '%b %d, %Y, %I %p')
+    form = AppointmentsForm(request.POST, request.FILES)
+    if form.is_valid() and request.user.is_authenticated:
+        appointment_type = request.POST.get('appointment_type')
+        department = request.POST.get('department')
+        suggested_date = request.POST.get('appointment_date')
+        uploaded_referral = len(request.FILES) > 0
+        if uploaded_referral:
+            referral = base64.b64encode(request.FILES['file'].read())
+        department_object = Departments.objects.get(department=department)
+        appointment_type = DAppointmentType.objects.get(appointment_type=appointment_type)
+        # Zmiana formatu daty na akceptowalną
+        suggested_date = datetime.datetime.strptime(str(suggested_date).replace("a.m.", "AM").replace("p.m.", "PM"),
+                                                    '%b %d, %Y, %I %p')
 
-    if request.user.is_authenticated:
         logged_patient = Patients.objects.get(user=request.user.id)
         if logged_patient is not None:
             # TODO: sprawdzanie czy nfz
@@ -36,8 +39,9 @@ def add_appointment_process(request):
                                             department=department_object, appointment_type=appointment_type,
                                             suggested_date=suggested_date, referral=referral, nfz=True)
             else:
-                Appointments.objects.create(id=next_id(Appointments), patient_pesel=logged_patient, department=department_object,
-                                            appointment_type=appointment_type, suggested_date=suggested_date, nfz=True)
+                Appointments.objects.create(id=next_id(Appointments), patient_pesel=logged_patient,
+                                            department=department_object, appointment_type=appointment_type,
+                                            suggested_date=suggested_date, nfz=True)
     return appointments(request)
 
 
@@ -65,6 +69,7 @@ def add_examination_process(request):
             description = request.POST.get('description')
             document_scan = request.FILES['file']
             document_type = document_scan.name.split('.')[-1].upper()
+            document_scan.name = hashlib.sha256(datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S").encode()).hexdigest() + '.' + document_type.lower()
             if logged_patient is not None:
                 UnacceptedExaminations.objects.create(id=next_id(UnacceptedExaminations), patient_pesel=logged_patient,
                                                       document_content=document_scan, document_type=document_type)
@@ -86,12 +91,14 @@ def index(request):
 
 def examinations(request):
     examinations = None
+    unaccepted_examinations = None
     if request.user.is_authenticated:
         logged_patient = Patients.objects.get(user=request.user.id)
         if logged_patient is not None:
             # Pobranie z BD wyników, w których pesel odnosi się do zalogowanego pacjenta
             examinations = Examinations.objects.filter(patient_pesel=logged_patient)
-    return render(request, 'examinations.html', {'exams': examinations})
+            unaccepted_examinations = UnacceptedExaminations.objects.filter(patient_pesel=logged_patient)
+    return render(request, 'examinations.html', {'exams': examinations, 'unnacepted_exams': unaccepted_examinations})
 
 
 def examination(request):
@@ -134,45 +141,46 @@ def appointments(request):
 
 def examination_single(request):
     examination = None
+    request_uri = request.build_absolute_uri()
     # Czy zalogowany
     try:
         if request.user.is_authenticated:
             # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
             examination_id = request.POST.get("examination_id")
             logged_patient = Patients.objects.get(user=request.user.id)
-            examination = Examinations.objects.filter(id=examination_id).filter(patient_pesel=logged_patient)
-            examination = examination[0] if examination is not None else None
+            if 'unaccepted-examination' in request_uri:
+                examination = UnacceptedExaminations.objects.filter(id=examination_id).filter(patient_pesel=logged_patient)
+            else:
+                examination = Examinations.objects.filter(id=examination_id).filter(patient_pesel=logged_patient)
+            examination = examination[0] if len(examination) > 0 else None
     except ObjectDoesNotExist:
         # TODO handle error
         print("Logged user not in 'Patient' table")
-    pdf_path = request.build_absolute_uri() + "/file?hash=" + examination.document_scan
-    print(pdf_path, '\n')
-    return render(request, 'examination.html', {'exam': examination, 'pdf_path': pdf_path})
+    if 'unaccepted-examination' in request_uri:
+        file_path = request_uri + "/file?hash=" + examination.document_content.name.replace('unaccepted_examinations/', '')
+        return render(request, 'unaccepted-examination.html', {'exam': examination, 'file_path': file_path})
+    else:
+        file_path = request_uri + "/file?hash=" + examination.document_scan.replace('examinations/', '')
+        return render(request, 'examination.html', {'exam': examination, 'file_path': file_path})
 
 
 def examination_file(request):
-    examination = None
-    examination_document = request.GET.get('hash', '')
-    # Czy zalogowany
+    examination, examination_type = examination_helper(request, 'normal')
+    document_path = (settings.MEDIA_ROOT + "/" + examination.document_scan).replace('\\', '/')
     try:
-        if request.user.is_authenticated:
-            # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
-            logged_patient = Patients.objects.get(user=request.user.id)
-            examination = Examinations.objects.filter(document_scan=examination_document) \
-                .filter(patient_pesel=logged_patient)
-            examination = examination[0] if examination is not None else None
-    except ObjectDoesNotExist:
-        # TODO handle error
-        print("Logged user not in 'Patient' table")
-    PROJECT_PATH = os.path.abspath(os.path.dirname(__name__))
-    document_path = (PROJECT_PATH + '/media/examinations/' + examination.document_scan).replace('\\', '/')
-    print("\n\n", document_path, "\n\n")
+        if examination_type is None:
+            return FileResponse(open(document_path, 'rb'))
+        return FileResponse(open(document_path, 'rb'), content_type=examination_type)
+    except FileNotFoundError:
+        raise Http404()
+
+
+def unaccepted_examination_file(request):
+    examination, examination_type = examination_helper(request, 'unaccepted')
+    document_path = (settings.MEDIA_ROOT + "/" + examination.document_content.name).replace('\\', '/')
+    print(document_path)
     try:
-        if examination.document_type == 'pdf':
-            examination_type = 'application/pdf'
-        elif examination.document_type == 'jpg':
-            examination_type = 'image/jpg'
-        else:
+        if examination_type is None:
             return FileResponse(open(document_path, 'rb'))
         return FileResponse(open(document_path, 'rb'), content_type=examination_type)
     except FileNotFoundError:
@@ -185,3 +193,31 @@ def next_id(model):
         return int(model.objects.all().order_by("-id")[0].id) + 1
     except IndexError:
         return 0
+
+
+def examination_helper(request, type):
+    examination = None
+    examination_document = request.GET.get('hash', '')
+    # Czy zalogowany
+    try:
+        if request.user.is_authenticated:
+            # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
+            logged_patient = Patients.objects.get(user=request.user.id)
+            if type == 'normal':
+                examination = Examinations.objects.filter(document_scan='examinations/' + examination_document) \
+                    .filter(patient_pesel=logged_patient)
+                examination = examination[0] if len(examination) > 0 else None
+            else:
+                examination = UnacceptedExaminations.objects.filter(document_content='unaccepted_examinations/' + examination_document) \
+                    .filter(patient_pesel=logged_patient)
+                examination = examination[0] if len(examination) > 0 else None
+    except ObjectDoesNotExist:
+        # TODO handle error
+        print("Logged user not in 'Patient' table")
+    if examination.document_type == 'pdf':
+        examination_type = 'application/pdf'
+    elif examination.document_type == 'jpg':
+        examination_type = 'image/jpg'
+    else:
+        examination_type = None
+    return examination, examination_type

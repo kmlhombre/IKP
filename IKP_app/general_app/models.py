@@ -7,7 +7,8 @@
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
 from django.contrib.auth.models import User
-import datetime
+
+from general_app.validators import validate_file_size_10
 
 
 class AppointmentNotifications(models.Model):
@@ -22,7 +23,6 @@ class AppointmentNotifications(models.Model):
     class Meta:
         managed = True
         db_table = 'appointment_notifications'
-
 
 
 class Appointments(models.Model):
@@ -411,7 +411,7 @@ class Timetable(models.Model):
 class UnacceptedExaminations(models.Model):
     id = models.IntegerField(primary_key=True)
     patient_pesel = models.ForeignKey(Patients, models.DO_NOTHING, db_column='patient_pesel')
-    document_content = models.FileField(upload_to='unaccepted_examinations')
+    document_content = models.FileField(upload_to='unaccepted_examinations', validators=[validate_file_size_10])
     document_type = models.TextField()
     uploaded_at = models.DateTimeField(auto_now_add=True)
     rejected_at = models.DateTimeField(blank=True, null=True)

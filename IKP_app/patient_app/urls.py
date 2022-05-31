@@ -8,6 +8,7 @@ urlpatterns = [
     path('', views.index),
     path('logout', views.logout_page),
     path('examinations/examination', views.examination_single),
+    path('examinations/unaccepted-examination', views.examination_single),
     path('examinations/', views.examinations),
     path('departments/', views.departments),
     path('appointments/', views.appointments),
@@ -16,6 +17,7 @@ urlpatterns = [
     path('appointments/add-appointment-3', views.add_appointment_process),
     path('examinations/add-examination', views.add_examination),
     path('examinations/add-examination-process', views.add_examination_process),
-    path('examinations/examination/file', views.examination_file)
+    path('examinations/examination/file', views.examination_file),
+    path('examinations/unaccepted-examination/file', views.unaccepted_examination_file)
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_URL)
