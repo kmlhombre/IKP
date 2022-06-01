@@ -9,6 +9,7 @@ from django.http import Http404, FileResponse
 from django.shortcuts import render
 from django.contrib.auth import logout
 from django.conf import settings
+from django.http import HttpResponseRedirect
 
 from general_app.models import *
 from patient_app.forms import UnacceptedExaminationsForm, AppointmentsForm
@@ -44,7 +45,7 @@ def add_appointment_process(request):
                 Appointments.objects.create(id=next_id(Appointments), patient_pesel=logged_patient,
                                             department=department_object, appointment_type=appointment_type,
                                             suggested_date=suggested_date, nfz=True)
-    return appointments(request)
+    return HttpResponseRedirect('/patient/appointments')
 
 
 def add_appointment_2(request):

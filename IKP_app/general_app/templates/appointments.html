@@ -43,7 +43,14 @@
             {% for i in appointments %}
         <tr>
             <td>{{ i.id}}</td>
-            <td>{{ i.appointment_date}}</td>
+
+            {% if i.appointment_date %}
+                <td>{{ i.appointment_date}}</td>
+            {% else %}
+                <td style="color:blue;">Oczekuje na zatwierdzenie</td>
+            {% endif %}
+
+
             <td>{{i.appointment_type.appointment_type}}</td>
             <td>{{ i.department.department}}</td>
             <td>{{ i.room.id}}</td>
