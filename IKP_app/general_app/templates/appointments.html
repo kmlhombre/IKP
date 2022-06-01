@@ -1,6 +1,33 @@
 {% extends "website-base.html" %}
 {% block content %}
-    <a class="btn btn-primary" href="add-appointment" role="button">Umów wizytę</a>
+
+<script>
+    function toogle_collapse(id)
+    {
+        var x = document.getElementById('recommendation-' + id);
+        var y = document.getElementById('button-show-' + id);
+        if (x.style.display === "none")
+        {
+            y.innerHTML = 'Ukryj'
+            x.style.display = "block";
+        }
+        else
+        {
+            y.innerHTML = 'Odczytaj'
+            x.style.display = "none";
+        }
+    }
+</script>
+
+<div class="row">
+    <div class="text-center">
+        <a href="add-appointment">
+            <button type="button" class="btn btn-primary btn-lg btn-block col-sm-12 col-md-8 col-lg-6" style="margin-top: 10px;">Zaplanuj wizytę</button>
+        </a>
+    </div>
+</div>
+
+<div class="row">
     <br>
     Appointments:
     <table class="table">
@@ -11,10 +38,30 @@
             <th>oddział</th>
             <th>pokój</th>
             <th>lekarz</th>
+            <th style="width:350px;">wynik wizyty</th>
         </tr>
             {% for i in appointments %}
-        <tr><th>{{ i.id}}</th><th>{{ i.appointment_date}}</th><th>{{i.appointment_type.appointment_type}}</th><th>{{ i.department.department}}</th>
-                <th>{{ i.room.id}}</th><th>{{ i.doctor.id}}</th></tr>
+        <tr>
+            <td>{{ i.id}}</td>
+            <td>{{ i.appointment_date}}</td>
+            <td>{{i.appointment_type.appointment_type}}</td>
+            <td>{{ i.department.department}}</td>
+            <td>{{ i.room.id}}</td>
+            <td>{{ i.doctor.id}}</td>
+            {% if i.recommendations %}
+
+            <td>
+                <button style="width:150px" id="button-show-{{ i.id}}" onclick="toogle_collapse({{ i.id}})" class="btn btn-primary">Odczytaj</button>
+                <br/>
+                <div id="recommendation-{{ i.id}}" style="display: none; width:350px;">
+                    {{ i.recommendations}}
+                </div>
+            </td>
+            {% else %}
+                <td></td>
+            {% endif %}
+        </tr>
             {% endfor %}
     </table>
+</div>
 {% endblock %}

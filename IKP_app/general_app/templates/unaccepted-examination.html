@@ -17,8 +17,21 @@
         <td>{{ exam.description}}</td>
         <td>{{ exam.document_type}}</td>
         <td>{{ exam.uploaded_at}}</td>
-        <td>{{ exam.rejected_at}}</td>
-        <td>{{ exam.rejected_for}}</td>
+        <td>
+            {% if exam.rejected_at %}
+            <span style="color:red;">{{ exam.rejected_at}}</span>
+            {% else %}
+            <span style="color:blue;">W trakcie oceny</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if exam.rejected_at %}
+            <span style="color:red;">{{ exam.rejected_for}}</span>
+            {% else %}
+            <span style="color:blue;">W trakcie oceny</span>
+            {% endif %}
+
+        </td>
     </tr>
 </table>
     <iframe
