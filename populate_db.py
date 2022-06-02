@@ -112,7 +112,8 @@ INSERT INTO examinations (
     id,
     patient_pesel,
     document_type,
-    document_scan,
+    document_content,
+    description,
     uploaded_at,
     uploaded_by,
     accepted_at,
@@ -121,7 +122,8 @@ INSERT INTO examinations (
     %(id)s,
     %(patient_pesel)s,
     %(document_type)s,
-    %(document_scan)s,
+    %(document_content)s,
+    %(description)s,
     %(uploaded_at)s,
     %(uploaded_by)s,
     %(accepted_at)s,
@@ -277,19 +279,21 @@ if __name__ == '__main__':
             insert_to_db(query_patient, patient_dict)
 
             if patient_id % 3 == 0:
-                document_scan = 'exam1.pdf'
+                document_content = 'exam1.pdf'
                 document_type = 'pdf'
             elif patient_id % 3 == 1:
-                document_scan = 'exam2.jpg'
+                document_content = 'exam2.jpg'
                 document_type = 'jpg'
             else:
-                document_scan = 'exam3.png'
+                document_content = 'exam3.png'
                 document_type = 'png'
+            description = 'Opis badania pacjenta ' + str(patient_id)
             examination_dict = {
                 'id': examination_id,
                 'patient_pesel': str(random_pesel_list[patient_id]),
-                'document_scan': document_scan,
+                'document_content': document_content,
                 'document_type': document_type,
+                'description': description,
                 'uploaded_at': date_joined,
                 'uploaded_by': x,
                 'accepted_at': date_joined,
