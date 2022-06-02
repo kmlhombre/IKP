@@ -275,8 +275,9 @@ class DjangoSession(models.Model):
 class Examinations(models.Model):
     id = models.IntegerField(primary_key=True)
     patient_pesel = models.ForeignKey('Patients', models.DO_NOTHING, db_column='patient_pesel')
-    document_scan = models.TextField()
+    document_content = models.TextField()
     document_type = models.TextField()
+    description = models.CharField(max_length=50)
     uploaded_at = models.DateTimeField()
     uploaded_by = models.ForeignKey(AuthUser, models.DO_NOTHING, db_column='uploaded_by')
     accepted_at = models.DateTimeField()
@@ -413,6 +414,7 @@ class UnacceptedExaminations(models.Model):
     patient_pesel = models.ForeignKey(Patients, models.DO_NOTHING, db_column='patient_pesel')
     document_content = models.FileField(upload_to='unaccepted_examinations', validators=[validate_file_size_10])
     document_type = models.TextField()
+    description = models.CharField(max_length=50)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     rejected_at = models.DateTimeField(blank=True, null=True)
     rejected_by = models.ForeignKey(HospitalStaff, models.DO_NOTHING, db_column='rejected_by', blank=True, null=True)
