@@ -17,7 +17,6 @@ from patient_app.forms import UnacceptedExaminationsForm, AppointmentsForm
 # from IKP_app.general_app.models import *
 
 
-
 # Create your views here.
 def add_appointment_process(request):
     form = AppointmentsForm(request.POST, request.FILES)
@@ -27,7 +26,9 @@ def add_appointment_process(request):
         suggested_date = request.POST.get('appointment_date')
         uploaded_referral = len(request.FILES) > 0
         if uploaded_referral:
-            referral = base64.b64encode(request.FILES['file'].read())
+            referral = request.FILES['file']
+            referral.name = hashlib.sha256(datetime.datetime.now().strftime(
+                "%m/%d/%Y, %H:%M:%S").encode()).hexdigest() + '.' + referral.name.split('.')[-1].lower()
         department_object = Departments.objects.get(department=department)
         appointment_type = DAppointmentType.objects.get(appointment_type=appointment_type)
         # Zmiana formatu daty na akceptowalną
@@ -61,7 +62,7 @@ def add_appointment_2(request):
 def add_appointment(request):
     departments = Departments.objects.filter()
     appointment_types = DAppointmentType.objects.filter()
-    return render(request, 'add-appointment.html.', {'departments': departments, 'types': appointment_types})
+    return render(request, 'add-appointment.html', {'departments': departments, 'types': appointment_types})
 
 
 def add_examination_process(request):
@@ -70,12 +71,14 @@ def add_examination_process(request):
         if form.is_valid() and request.user.is_authenticated:
             logged_patient = Patients.objects.get(user=request.user.id)
             description = request.POST.get('description')
-            document_scan = request.FILES['file']
-            document_type = document_scan.name.split('.')[-1].upper()
-            document_scan.name = hashlib.sha256(datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S").encode()).hexdigest() + '.' + document_type.lower()
+            document_content = request.FILES['file']
+            document_type = document_content.name.split('.')[-1].upper()
+            document_content.name = hashlib.sha256(datetime.datetime.now().strftime(
+                "%m/%d/%Y, %H:%M:%S").encode()).hexdigest() + '.' + document_type.lower()
             if logged_patient is not None:
                 UnacceptedExaminations.objects.create(id=next_id(UnacceptedExaminations), patient_pesel=logged_patient,
-                                                      document_content=document_scan, document_type=document_type)
+                                                      document_content=document_content, document_type=document_type,
+                                                      description=description)
     return examinations(request)
 
 
@@ -91,26 +94,26 @@ def logout_page(request):
 def index(request):
     return render(request, 'patient-index.html')
 
+
 class general_examination:
     def __init__(self, orig=None):
         if orig is None:
             return
-        if  isinstance(orig, Examinations) or isinstance(orig, UnacceptedExaminations):
+        if isinstance(orig, Examinations) or isinstance(orig, UnacceptedExaminations):
             self.id = orig.id
             self.patient_pesel = orig.patient_pesel
             self.document_type = orig.document_type
             self.uploaded_at = orig.uploaded_at
 
-
             if isinstance(orig, Examinations):
                 self.uploaded_by = orig.uploaded_by
-                self.document_scan = orig.document_scan
+                self.document_content = orig.document_content
                 self.accepted = True
                 self.accepted_at = orig.accepted_at
                 self.accepted_by = orig.accepted_by
                 return
             if isinstance(orig, UnacceptedExaminations):
-                self.document_scan = orig.document_content
+                self.document_content = orig.document_content
                 self.rejected_at = orig.rejected_at
                 self.rejected_by = orig.rejected_by
                 self.rejected_for = orig.rejected_for
@@ -118,7 +121,7 @@ class general_examination:
 
     id = -1
     patient_pesel = ''
-    document_scan = ''
+    document_content = ''
     document_type = ''
     uploaded_at = models.DateTimeField()
     uploaded_by = -1
@@ -131,6 +134,7 @@ class general_examination:
     rejected_at = models.DateTimeField()
     rejected_by = -1
     rejected_for = 'Object instance not set correctly. Contact you administrator.'
+
 
 def examinations(request):
     examinations = None
@@ -200,7 +204,8 @@ def examination_single(request):
             examination_id = request.POST.get("examination_id")
             logged_patient = Patients.objects.get(user=request.user.id)
             if 'unaccepted-examination' in request_uri:
-                examination = UnacceptedExaminations.objects.filter(id=examination_id).filter(patient_pesel=logged_patient)
+                examination = UnacceptedExaminations.objects.filter(id=examination_id).filter(
+                    patient_pesel=logged_patient)
             else:
                 examination = Examinations.objects.filter(id=examination_id).filter(patient_pesel=logged_patient)
             examination = examination[0] if len(examination) > 0 else None
@@ -208,16 +213,17 @@ def examination_single(request):
         # TODO handle error
         print("Logged user not in 'Patient' table")
     if 'unaccepted-examination' in request_uri:
-        file_path = request_uri + "/file?hash=" + examination.document_content.name.replace('unaccepted_examinations/', '')
+        file_path = request_uri + "/file?hash=" + examination.document_content.name.replace('unaccepted_examinations/',
+                                                                                            '')
         return render(request, 'unaccepted-examination.html', {'exam': examination, 'file_path': file_path})
     else:
-        file_path = request_uri + "/file?hash=" + examination.document_scan.replace('examinations/', '')
+        file_path = request_uri + "/file?hash=" + examination.document_content.replace('examinations/', '')
         return render(request, 'examination.html', {'exam': examination, 'file_path': file_path})
 
 
 def examination_file(request):
     examination, examination_type = examination_helper(request, 'normal')
-    document_path = (settings.MEDIA_ROOT + "/" + examination.document_scan).replace('\\', '/')
+    document_path = (settings.MEDIA_ROOT + "/" + examination.document_content).replace('\\', '/')
     try:
         if examination_type is None:
             return FileResponse(open(document_path, 'rb'))
@@ -246,7 +252,7 @@ def next_id(model):
         return 0
 
 
-def examination_helper(request, type):
+def examination_helper(request, examination_type):
     examination = None
     examination_document = request.GET.get('hash', '')
     # Czy zalogowany
@@ -254,12 +260,13 @@ def examination_helper(request, type):
         if request.user.is_authenticated:
             # Obecnie zalogowany użytkownik, jeśli jest w tabeli 'patient'
             logged_patient = Patients.objects.get(user=request.user.id)
-            if type == 'normal':
-                examination = Examinations.objects.filter(document_scan='examinations/' + examination_document) \
+            if examination_type == 'normal':
+                examination = Examinations.objects.filter(document_content='examinations/' + examination_document) \
                     .filter(patient_pesel=logged_patient)
                 examination = examination[0] if len(examination) > 0 else None
             else:
-                examination = UnacceptedExaminations.objects.filter(document_content='unaccepted_examinations/' + examination_document) \
+                examination = UnacceptedExaminations.objects.filter(
+                    document_content='unaccepted_examinations/' + examination_document) \
                     .filter(patient_pesel=logged_patient)
                 examination = examination[0] if len(examination) > 0 else None
     except ObjectDoesNotExist:
@@ -273,6 +280,7 @@ def examination_helper(request, type):
         examination_type = None
     return examination, examination_type
 
+
 def accept_examination_123(examination_id, accepted_by_id):
     unaccepted_exam = UnacceptedExaminations.objects.get(id=examination_id)
     accepted_by = HospitalStaff.objects.get(id=accepted_by_id)
@@ -280,7 +288,7 @@ def accept_examination_123(examination_id, accepted_by_id):
     new_name = str(unaccepted_exam.document_content).replace('unaccepted_', '', 1)
     # Tworzenie obiektu w tabeli examinations
     Examinations.objects.create(id=next_id(Examinations), patient_pesel=unaccepted_exam.patient_pesel,
-                                document_scan=new_name, document_type=unaccepted_exam.document_type,
+                                document_content=new_name, document_type=unaccepted_exam.document_type,
                                 uploaded_at=unaccepted_exam.uploaded_at, uploaded_by=uploaded_by,
                                 accepted_at=datetime.datetime.now(), accepted_by=accepted_by)
     # Przenoszenie pliku

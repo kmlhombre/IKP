@@ -1,4 +1,7 @@
 IKP_app/**/migrations/*.py
+IKP_app/media/examinations/*
+IKP_app/media/unaccepted_examinations/*
+IKP_app/media/referrals/*
 *.log
 *.pot
 *.pyc
