@@ -32,9 +32,27 @@ def login_user(request):
 
     return render(request, 'login.html')
 
+
+def login_staff(request):
+    logout(request)
+    username = password = ''
+    if request.POST:
+        username = request.POST['username']
+        password = request.POST['password']
+
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            if user.is_active:
+                login(request, user)
+                return HttpResponseRedirect('/staff/')
+
+    return render(request, 'login.html')
+
+
 @login_required(login_url='/general_app/login_user/')
 def main(request):
     return HttpResponse("You are logged")
+
 
 def check_password(request):
     passwd = make_password('admin')
