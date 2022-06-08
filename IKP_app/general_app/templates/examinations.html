@@ -1,62 +1,66 @@
 {% extends "website-base.html" %}
 {% block content %}
 
-    <a class="btn btn-primary" href="add-examination" role="button">Dodaj badanie</a>
+
+<div class="row">
+    <div class="text-center">
+        <a href="add-examination">
+            <button type="button" class="btn btn-primary btn-lg btn-block col-sm-12 col-md-8 col-lg-6" style="margin-top: 10px;">Dodaj badanie</button>
+        </a>
+    </div>
+</div>
+
+<div class="row">
+
     <br/>
     Examinations:
     <table class="table">
         <tr>
             <th scope="col"></th>
             <th scope="col">Opis</th>
-            <th scope="col">document type</th>
-            <th scope="col">uploaded at</th>
-            <th scope="col">uploaded by</th>
-            <th scope="col">accepted at</th>
-            <th scope="col">accepted by</th>
+            <th scope="col">Dodane</th>
+            <th scope="col">Dodane przez</th>
+            <th scope="col">Zaakceptowane</th>
+            <th scope="col">Zaakceptowane przez</th>
         </tr>
-            {% for i in exams %}
+        {% for i in exams %}
+
+        {% if i.accepted %}
             <tr>
-                <td>
+                <td style="text-align: center;">
                     <form action="examination" method="post">{% csrf_token %}
                         <input type="submit" value="Przejdź do badania">
                         <input type="hidden" name="examination_id" value="{{ i.id}}">
                     </form>
 
-                <td>{{ i.description}}</td>
-                <td>{{ i.document_type}}</td>
-                <td>{{ i.uploaded_at}}</td>
-                <td>{{ i.uploaded_by.id}}</td>
-                <td>{{ i.accepted_at}}</td>
-                <td>{{ i.accepted_by.id}}</td>
+                    <td>{{ i.description}}</td>
+                    <td>{{ i.uploaded_at}}</td>
+                    <td>{{ i.uploaded_by.id}}</td>
+                    <td>{{ i.accepted_at}}</td>
+                    <td>{{ i.accepted_by.id}}</td>
             </tr>
-            {% endfor %}
-    </table>
-
-    <br/>
-    Unaccepted Examinations:
-    <table class="table">
-        <tr>
-            <th scope="col"></th>
-            <th scope="col">Opis</th>
-            <th scope="col">document type</th>
-            <th scope="col">uploaded at</th>
-            <th scope="col">rejected at</th>
-            <th scope="col">rejected for</th>
-        </tr>
-            {% for i in unnacepted_exams %}
+        {% else %}
             <tr>
-                <td>
+                <td style="text-align: center;">
                     <form action="unaccepted-examination" method="post">{% csrf_token %}
                         <input type="submit" value="Przejdź do badania">
                         <input type="hidden" name="examination_id" value="{{ i.id}}">
                     </form>
 
-                <td>{{ i.description}}</td>
-                <td>{{ i.document_type}}</td>
-                <td>{{ i.uploaded_at}}</td>
-                <td>{{ i.rejected_at}}</td>
-                <td>{{ i.rejected_for}}</td>
+                    <td>{{ i.description}}</td>
+                    <td>{{ i.uploaded_at}}</td>
+                    <td >Ty</td>
+                    <td></td>
+
+                    {% if i.rejected_at %}
+                    <td style="color:red;">Badanie odrzucone</td>
+                    {% else %}
+                    <td style="color:blue;">Badanie niezaakceptowane</td>
+                    {% endif %}
             </tr>
-            {% endfor %}
+        {% endif %}
+
+        {% endfor %}
     </table>
+</div>
 {% endblock %}

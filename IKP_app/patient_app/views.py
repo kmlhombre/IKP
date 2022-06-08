@@ -2,17 +2,20 @@ import base64
 import os
 import datetime
 import hashlib
+import shutil
 
 from django.db.models.base import ObjectDoesNotExist
 from django.http import Http404, FileResponse
 from django.shortcuts import render
 from django.contrib.auth import logout
 from django.conf import settings
+from django.http import HttpResponseRedirect
 
 from general_app.models import *
 from patient_app.forms import UnacceptedExaminationsForm, AppointmentsForm
 # Comment this
 # from IKP_app.general_app.models import *
+
 
 
 # Create your views here.
@@ -42,7 +45,7 @@ def add_appointment_process(request):
                 Appointments.objects.create(id=next_id(Appointments), patient_pesel=logged_patient,
                                             department=department_object, appointment_type=appointment_type,
                                             suggested_date=suggested_date, nfz=True)
-    return appointments(request)
+    return HttpResponseRedirect('/patient/appointments')
 
 
 def add_appointment_2(request):
@@ -88,6 +91,46 @@ def logout_page(request):
 def index(request):
     return render(request, 'patient-index.html')
 
+class general_examination:
+    def __init__(self, orig=None):
+        if orig is None:
+            return
+        if  isinstance(orig, Examinations) or isinstance(orig, UnacceptedExaminations):
+            self.id = orig.id
+            self.patient_pesel = orig.patient_pesel
+            self.document_type = orig.document_type
+            self.uploaded_at = orig.uploaded_at
+
+
+            if isinstance(orig, Examinations):
+                self.uploaded_by = orig.uploaded_by
+                self.document_scan = orig.document_scan
+                self.accepted = True
+                self.accepted_at = orig.accepted_at
+                self.accepted_by = orig.accepted_by
+                return
+            if isinstance(orig, UnacceptedExaminations):
+                self.document_scan = orig.document_content
+                self.rejected_at = orig.rejected_at
+                self.rejected_by = orig.rejected_by
+                self.rejected_for = orig.rejected_for
+                return
+
+    id = -1
+    patient_pesel = ''
+    document_scan = ''
+    document_type = ''
+    uploaded_at = models.DateTimeField()
+    uploaded_by = -1
+    accepted_at = models.DateTimeField()
+    accepted_by = -1
+
+    accepted = False
+    rejected = False
+
+    rejected_at = models.DateTimeField()
+    rejected_by = -1
+    rejected_for = 'Object instance not set correctly. Contact you administrator.'
 
 def examinations(request):
     examinations = None
@@ -98,7 +141,15 @@ def examinations(request):
             # Pobranie z BD wyników, w których pesel odnosi się do zalogowanego pacjenta
             examinations = Examinations.objects.filter(patient_pesel=logged_patient)
             unaccepted_examinations = UnacceptedExaminations.objects.filter(patient_pesel=logged_patient)
-    return render(request, 'examinations.html', {'exams': examinations, 'unnacepted_exams': unaccepted_examinations})
+
+            all_examinations = []
+            for x in examinations:
+                all_examinations.append(general_examination(x))
+
+            for x in unaccepted_examinations:
+                all_examinations.append(general_examination(x))
+
+    return render(request, 'examinations.html', {'exams': all_examinations})
 
 
 def examination(request):
@@ -221,3 +272,20 @@ def examination_helper(request, type):
     else:
         examination_type = None
     return examination, examination_type
+
+def accept_examination_123(examination_id, accepted_by_id):
+    unaccepted_exam = UnacceptedExaminations.objects.get(id=examination_id)
+    accepted_by = HospitalStaff.objects.get(id=accepted_by_id)
+    uploaded_by = AuthUser.objects.get(id=unaccepted_exam.patient_pesel.user_id)
+    new_name = str(unaccepted_exam.document_content).replace('unaccepted_', '', 1)
+    # Tworzenie obiektu w tabeli examinations
+    Examinations.objects.create(id=next_id(Examinations), patient_pesel=unaccepted_exam.patient_pesel,
+                                document_scan=new_name, document_type=unaccepted_exam.document_type,
+                                uploaded_at=unaccepted_exam.uploaded_at, uploaded_by=uploaded_by,
+                                accepted_at=datetime.datetime.now(), accepted_by=accepted_by)
+    # Przenoszenie pliku
+    old_path = (settings.MEDIA_ROOT + "/" + str(unaccepted_exam.document_content)).replace('\\', '/')
+    new_path = (settings.MEDIA_ROOT + "/" + new_name).replace('\\', '/')
+    shutil.move(old_path, new_path)
+    # Usuwanie z tabeli unaccepted_examinations
+    unaccepted_exam.delete()

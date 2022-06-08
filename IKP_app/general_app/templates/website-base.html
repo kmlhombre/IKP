@@ -17,7 +17,16 @@
 	<div class="container" style="margin-top:10px; width:100%;">
 		<!-- HEADER -->
 		<div class="row">
-			<div class="col-12 text-right" style="text-align:right;">
+			<div class="col-6 text-start">
+				{% if user.is_authenticated %}
+				<span>Jesteś zalogowany jako: {{user}}</span>
+				{% else %}
+					<span>Odwiedzasz stronę jako gość</span>
+				{% endif %}
+
+			</div>
+
+			<div class="col-6 text-end">
 				{% if user.is_authenticated %}
 					<a href="/patient/logout" class="col-1">Wyloguj się</a>
 				{% else %}

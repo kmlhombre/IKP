@@ -32,8 +32,9 @@
 {% endblock %}
 
 patient_pesel = models.ForeignKey('Patient', models.DO_NOTHING, db_column='patient_pesel')
-    document_scan = models.TextField()
+    document_content = models.TextField()
     document_type = models.TextField()
+    description = models.CharField(max_length=50)
     uploaded_at = models.DateTimeField()
     uploaded_by = models.ForeignKey(AuthUser, models.DO_NOTHING, db_column='uploaded_by')
     accepted_at = models.DateTimeField(blank=True, null=True)
