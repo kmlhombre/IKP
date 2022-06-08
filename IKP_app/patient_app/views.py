@@ -238,13 +238,23 @@ def examination_single(request):
     except ObjectDoesNotExist:
         # TODO handle error
         print("Logged user not in 'Patient' table")
+
+    accepted_by_name = ""
+    uploaded_by_name = ""
+
+    if isinstance(examination, Examinations):
+        accepted_by_name = get_staff_name_by_id(examination.accepted_by.id)
+        uploaded_by_name = get_staff_name_by_id(examination.uploaded_by.id)
+    else:
+        uploaded_by_name = get_staff_name_by_id(examination.uploaded_by.id)
+
     if 'unaccepted-examination' in request_uri:
         file_path = request_uri + "/file?hash=" + examination.document_content.name.replace('unaccepted_examinations/',
                                                                                             '')
-        return render(request, 'unaccepted-examination.html', {'exam': examination, 'file_path': file_path})
+        return render(request, 'unaccepted-examination.html', {'exam': examination, 'file_path': file_path, 'accepted_by_name' : accepted_by_name, 'uploaded_by_name' : uploaded_by_name})
     else:
         file_path = request_uri + "/file?hash=" + examination.document_content.replace('examinations/', '')
-        return render(request, 'examination.html', {'exam': examination, 'file_path': file_path})
+        return render(request, 'examination.html', {'exam': examination, 'file_path': file_path, 'accepted_by_name' : accepted_by_name, 'uploaded_by_name' : uploaded_by_name})
 
 
 def examination_file(request):
