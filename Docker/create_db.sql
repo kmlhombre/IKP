@@ -1,5 +1,4 @@
-CREATE DATABASE IF NOT EXISTS ikp_hcp;
-USE ikp_hcp;
+\c ikp_hcp;
 
 CREATE TABLE IF NOT EXISTS public.auth_group
 (
