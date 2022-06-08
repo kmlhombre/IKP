@@ -13,33 +13,40 @@
 						<li class="nav-item">
 							<a class="nav-link active" aria-current="page" href="/">Strona główna</a>
 						</li>
-						<li class="nav-item">
-							<a class="nav-link" href="#" >Wizyty</a>
-						</li>
+                        {% if role == 'Lekarz' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="/staff/physician/appointments" >Wizyty</a>
+                            </li>
+                        {% elif role == 'Rejestrator' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="/staff/registration/appointments" >Wizyty</a>
+                            </li>
 
-						<li class="nav-item">
-							<a class="nav-link" href="#">Badania</a>
-						</li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/staff/registration/examinations">Badania</a>
+                            </li>
+                        {% elif role == 'Administrator' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="#" >Wizyty</a>
+                            </li>
 
-						<li class="nav-item">
-							<a class="nav-link" href="#">Znajdź</a>
-						</li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Badania</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Pacjenci</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Personel</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Oddziały</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Kampanie</a>
+                            </li>
+                        {% endif %}
 
-						<li class="nav-item">
-							<a class="nav-link" href="#"></a>
-						</li>
-
-						<li class="nav-item">
-							<a class="nav-link" href="#"></a>
-						</li>
-
-						<li class="nav-item">
-							<a class="nav-link" href="#"></a>
-						</li>
-
-						<li class="nav-item">
-							<a class="nav-link" href="#">{{ role }}</a>
-						</li>
 					</ul>
 				</div>
 			</div>
