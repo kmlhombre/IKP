@@ -2,6 +2,11 @@
 {% block content %}
 <!-- TODO: próba wysyłania PDFa tylko, jeśli examination nie jest null + odpowiednie info -->
 
+<script>
+    document.getElementById("navbar_examinations").setAttribute('aria-current','page');
+    document.getElementById("navbar_examinations").classList.add('active');
+</script>
+
 <a href="/patient/examinations" class="center-block">
 					<button type="button" class="btn btn-primary btn-lg btn-block col-sm-12 col-md-8 col-lg-6" style=" margin: auto; margin-top: 10px; display: block;">Powrót</button>
 </a>
