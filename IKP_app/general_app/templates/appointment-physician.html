@@ -1,0 +1,63 @@
+{% extends "website-base.html" %}
+{% block content %}
+
+<h2>Wizyty</h2>
+
+<div class="row">
+    <br>
+    <table id="appointments_table" class="table">
+        <thead>
+            <tr>
+                <th>Data wizyty</th>
+                <th>Typ wizyty</th>
+                <th>Oddział</th>
+                <th>Pokój</th>
+                <th>Pacjent</th>
+                <th style="width:350px;">Wynik wizyty</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tr>
+            {% if appointment.appointment_date %}
+                <td>{{ appointment.appointment_date|date:"d.m.Y H:i"}}</td>
+            {% else %}
+                <td style="color:blue;">Oczekuje na zatwierdzenie</td>
+            {% endif %}
+
+
+            <td>{{ appointment.appointment_type.appointment_type}}</td>
+            <td>{{ appointment.department.department}}</td>
+            <td>{{ appointment.room.id}}</td>
+            <td>
+                {{ patient_name }}
+            </td>
+            {% if appointment.recommendations %}
+
+            <td>
+                <div id="recommendation-{{ appointment.id}}" style="display: none; width:350px;">
+                    {{ appointment.recommendations }}
+                </div>
+            </td>
+            {% else %}
+                <td></td>
+            {% endif %}
+            <td>
+                <form class="form-horizontal" action="appointment" method="post" enctype="multipart/form-data">{% csrf_token %}
+                    <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                    <input class="form-control" type="submit" value="Dodaj/edytuj wynik wizyty">
+                </form>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<iframe
+src="{{ file_path }}"
+frameBorder="0"
+scrolling="auto"
+height="800"
+width="100%"
+></iframe>
+
+{% endblock %}

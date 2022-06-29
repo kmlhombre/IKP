@@ -42,11 +42,19 @@
 		<!-- BANNER -->
 		<div class="row">
 			<div class="col-12">
-				<a href="/">
-					<div class="text-center" style="margin: 20px;">
-						<img src="{%static 'images/hcp-banner.png'%}" class="rounded img-fluid" alt="hcp-banner">
-					</div>
-				</a>
+                {% if user.is_staff %}
+                    <a href="/staff">
+                        <div class="text-center" style="margin: 20px;">
+                            <img src="{%static 'images/hcp-banner.png'%}" class="rounded img-fluid" alt="hcp-banner">
+                        </div>
+                    </a>
+                {% else %}
+                    <a href="/">
+                        <div class="text-center" style="margin: 20px;">
+                            <img src="{%static 'images/hcp-banner.png'%}" class="rounded img-fluid" alt="hcp-banner">
+                        </div>
+                    </a>
+                {% endif %}
 			</div>
 		</div>
         {% if user.is_authenticated %}

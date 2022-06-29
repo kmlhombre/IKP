@@ -21,13 +21,56 @@ def appointments_physician(request):
     appointments = None
     # Czy zalogowany
     authenticated, role_object, logged_staff = authenticate_staff(request, 'Lekarz')
-    examination_id = request.POST.get("examination_id")
     if not authenticated:
         return HttpResponseForbidden()
     else:
         logged_staff = logged_staff[0]
-    appointments = Appointments.objects.filter(doctor=logged_staff)
-    return render(request, 'appointments.html', {'appointments': appointments, 'role': navbar_staff(request)})
+    date_today = datetime.date.today()
+    appointments = Appointments.objects.filter(doctor=logged_staff, appointment_date__year=date_today.year,
+                                               appointment_date__month=date_today.month, appointment_date__day=date_today.day)
+    patient_list = [i.patient_pesel for i in appointments]
+    patient_names = {}
+    for i in patient_list:
+        patient_names[i.pesel] = str(AuthUser.objects.get(id=i.user_id).first_name) + " " + str(AuthUser.objects.get(id=i.user_id).last_name)
+    return render(request, 'appointments-physician.html', {'appointments': appointments, 'role': navbar_staff(request), 'patient_names': patient_names})
+
+
+def appointment_physician(request):
+    if request.method != 'POST':
+        return HttpResponseNotAllowed()
+    authenticated, _, _ = authenticate_staff(request, 'Lekarz')
+    if not authenticated:
+        return HttpResponseForbidden()
+    appointment_id = request.POST.get('appointment_id')
+    appointment = Appointments.objects.get(id=appointment_id)
+    patient_name = str(AuthUser.objects.get(id=appointment.patient_pesel.user_id).first_name) + " " + \
+                   str(AuthUser.objects.get(id=appointment.patient_pesel.user_id).last_name)
+
+    request_uri = request.build_absolute_uri()
+    file_path = request_uri + "/file?hash=" + str(appointment.referral).replace('referrals/', '')
+    return render(request, 'appointment-physician.html', {'role': navbar_staff(request), 'appointment': appointment, 'file_path': file_path, 'patient_name': patient_name})
+
+
+def appointment_physician_file(request):
+    appointment = None
+    appointment_referral = request.GET.get('hash', '')
+    authenticated, role_object, _ = authenticate_staff(request, 'Lekarz')
+    if not authenticated:
+        return HttpResponseForbidden()
+    appointment = Appointments.objects.filter(
+        referral='referrals/' + appointment_referral)
+    appointment = appointment[0] if len(appointment) > 0 else None
+
+    document_path = (settings.MEDIA_ROOT + "/" + str(appointment.referral)).replace('\\', '/')
+    try:
+        return FileResponse(open(document_path, 'rb'))
+    except FileNotFoundError:
+        raise Http404()
+
+
+def patient_physician(request):
+
+    return render(request, 'patient-physician.html', {'role': navbar_staff(request)})
 
 
 def appointments_registration(request):
@@ -137,6 +180,7 @@ def examination_accept(request):
 def examination_reject(request):
     return render(request, 'examination-reject.html', {'role': navbar_staff(request)})
 
+
 def analyze_single_examination(request):
     unaccepted_examinations = UnacceptedExaminations.objects.filter().order_by('id')
     examinations_left = len(unaccepted_examinations)-1
@@ -153,8 +197,10 @@ def analyze_single_examination(request):
 def discard_examination(request):
     pass
 
+
 def accept_examination():
     pass
+
 
 # Helper functions
 def next_id(model):

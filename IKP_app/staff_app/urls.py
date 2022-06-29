@@ -7,6 +7,9 @@ from . import views
 urlpatterns = [
     path('', views.index),
     path('physician/appointments/', views.appointments_physician),
+    path('physician/appointments/patient', views.patient_physician),
+    path('physician/appointments/appointment', views.appointment_physician),
+    path('physician/appointments/appointment/file', views.appointment_physician_file),
     path('registration/appointments/', views.appointments_registration),
     path('registration/appointments/appointment-accept/', views.appointment_accept),
     path('registration/examinations/', views.examinations_registration),
