@@ -34,7 +34,7 @@ class Appointments(models.Model):
     doctor = models.ForeignKey('HospitalStaff', models.DO_NOTHING, db_column='doctor', blank=True, null=True)
     appointment_type = models.ForeignKey('DAppointmentType', models.DO_NOTHING, db_column='appointment_type')
     suggested_date = models.DateField()
-    referral = models.FileField(upload_to='referrals', validators=[validate_file_size_10], blank=True, null=True)
+    referral = models.FileField(upload_to='referrals', blank=True, null=True)
     nfz = models.BooleanField()
     recommendations = models.TextField(blank=True, null=True)
     accepted_at = models.DateTimeField(blank=True, null=True)

@@ -3,7 +3,11 @@
 
 <div class="row">
     <div class="col-12">
+        <a href="/staff/registration/accept_appointments" class="center-block">
+					<button type="button" class="btn btn-primary btn-lg btn-block col-sm-12 col-md-8 col-lg-6" style=" margin: auto; margin-top: 10px; display: block;">Powrót</button>
+</a>
         <h4>Pozostało <span style="color:#FF0000">{{appointments_left}}</span> wizyt do zatwierdzenia</h4>
+        {{appointment.accepted_by}}<br>
         <table class="table">
             <tr>
                 <th>Sugerowana data</th>
@@ -26,7 +30,7 @@
 </div>
 <div class="row">
     <div class="col-12 col-lg-12 text-center">
-        <form class="form" action="accept_single_appointment/staff_accept_single_appointment_2" method="post">
+        <form class="form" enctype="multipart/form-data" action="accept_single_appointment/staff_accept_single_appointment_2" method="post">
             {% csrf_token %}
             <input type="hidden" name="appointment_id" value="{{appointment.id}}"/>
             <table class="table">
@@ -37,8 +41,8 @@
                     <th>Pokój</th>
                 </tr>
                 <tr>
-                    <td><input type="date" id="app_date"></td>
-                    <td><input type="time" id="app_hour"></td>
+                    <td><input type="date" name="app_date"></td>
+                    <td><input type="time" name="app_hour"></td>
                     <td>
                         <select name="doctor">
                             {% for d in doctors %}

@@ -1,6 +1,7 @@
 import datetime
 import http
 import shutil
+from datetime import datetime,date
 
 from django.conf import settings
 from django.shortcuts import render
@@ -8,31 +9,42 @@ from django.http import HttpResponseForbidden, FileResponse, Http404, HttpRespon
 from general_app.models import *
 from patient_app.views import general_examination
 from django.http import HttpResponseNotFound
+from django.shortcuts import HttpResponseRedirect
 # Comment this
 # from IKP_app.general_app.models import *
 # from IKP_app.patient_app.views import general_examination
 
 
 def staff_accept_single_appointment_2(request):
-    app_id = request.POST.get("appointment_id","")
+    app_id = request.POST.get("appointment_id")
 
-    date = request.POST.get("app_date","")
-    time = request.POST.get("app_time","")
-    doctor = request.POST.get("doctor","")
-    room = request.POST.get("room","")
+    date = request.POST.get("app_date")
+    time = request.POST.get("app_hour")
+    doctor = request.POST.get("doctor")
+    room = request.POST.get("room")
 
-    print('---'+date)
-    print('---'+time)
-    print('---'+doctor)
-    print('---'+room)
+    date_time_obj = datetime.strptime((str(date)+' '+str(time)), '%Y-%m-%d %H:%M')
+    doctor_object = HospitalStaff.objects.get(id=doctor)
+    room_object = Rooms.objects.get(room_name=room)
+
+    app_object = Appointments.objects.get(id=app_id)
+    app_object.appointment_date=date_time_obj
+    app_object.doctor=doctor_object
+    app_object.room=room_object
+
+    current_user = AuthUser.objects.get(username=request.user)
+    app_object.accepted_by = HospitalStaff.objects.get(user=current_user)
+    app_object.accepted_at = datetime.now().strftime('%Y-%m-%d %H:%M')
 
 
-    return HttpResponseNotFound("hello")
+    app_object.save(update_fields=['appointment_date','doctor','room','accepted_by','accepted_at'])
+    return HttpResponseRedirect('/staff/registration/accept_appointments/accept_single_appointment')
 
 def staff_delete_single_appointment_2(request):
     app_id = request.POST.get("appointment_id","")
+    Appointments.objects.get(id=app_id).delete()
 
-    return HttpResponseNotFound("hello")
+    return HttpResponseRedirect('/staff/registration/accept_appointments/accept_single_appointment')
 
 
 # Create your views here.
@@ -86,7 +98,16 @@ def appointment_accept(request):
 def accept_single_appointment(request):
     unaccepted_appointments = Appointments.objects.filter(accepted_by__isnull=True).order_by('id')
     appointments_left = len(unaccepted_appointments)
-    unaccepted_appointment = unaccepted_appointments[0]
+
+    if len(unaccepted_appointments)==0:
+        return HttpResponseRedirect('/staff/registration/accept_appointments')
+
+    unaccepted_appointment = None
+
+    if request.POST.get('appointment_id'):
+        unaccepted_appointment = Appointments.objects.get(id=request.POST.get('appointment_id'))
+    else:
+        unaccepted_appointment = unaccepted_appointments[0]
 
     request_uri = request.build_absolute_uri()
     file_path = ''
