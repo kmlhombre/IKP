@@ -1,6 +1,19 @@
 {% extends "website-base.html" %}
 {%block content %}
 
+<style>
+    button
+    {
+        margin-top:5px;
+        margin-bottom: 5px;
+    }
+
+    .zmiana_opisu
+    {
+        display: none;
+    }
+</style>
+
 <script>
     function validate_form()
     {
@@ -12,11 +25,64 @@
          }
     }
 
+    function validate_acceptance()
+    {
+        document.getElementById('examination_description').value = document.getElementById('td_description').innerHTML;
+        return true;
+    }
+
+    function show_change_description()
+    {
+        document.querySelectorAll('.description_change_button').forEach(
+            elem=>
+            {
+                elem.style.display = "none";
+            })
+        document.querySelectorAll('.zmiana_opisu').forEach(
+            elem=>
+            {
+                elem.style.display = "inline";
+            })
+    }
+
+    function save_change_description()
+    {
+        document.querySelectorAll('.description_change_button').forEach(
+            elem=>
+            {
+                elem.style.display = "inline";
+            })
+
+        document.getElementById('td_description').innerHTML = document.getElementById('description_change').value;
+        document.getElementById('description_change').value = "";
+        document.querySelectorAll('.zmiana_opisu').forEach(
+            elem=>
+            {
+                elem.style.display = "none";
+            })
+    }
+
+    function discard_change_description()
+    {
+        document.querySelectorAll('.description_change_button').forEach(
+            elem=>
+            {
+                elem.style.display = "inline";
+            })
+
+        document.getElementById('description_change').value = "";
+        document.querySelectorAll('.zmiana_opisu').forEach(
+            elem=>
+            {
+                elem.style.display = "none";
+            })
+    }
+
 </script>
 
 <div class="row">
     <div class="col-12">
-        Podstawowe informacje
+        <h4>Pozostało <span style="color:#FF0000">{{examinations_left}}</span> badań do oceny</h4>
         <table class="table">
             <tr>
                 <th>Pesel pacjenta</th>
@@ -33,7 +99,7 @@
                 <td>{{examination.patient_pesel.pesel}}</td>
                 <td>{{examination.patient_pesel.user.first_name}}</td>
                 <td>{{examination.patient_pesel.user.last_name}}</td>
-                <td>{{examination.description}}</td>
+                <td id="td_description">{{examination.description}}</td>
                 <td>{{examination.uploaded_at}}</td>
 
             </tr>
@@ -41,16 +107,27 @@
     </div>
 </div>
 <div class="row">
-    <div class="col-6 text-center">
-        <form class="form" action="staff/accept_examination" method="post">
+    <div class="col-12 col-lg-4 text-center">
+        <form class="form" action="accept_examination" method="post" onsubmit="return validate_acceptance()">
             <input type="hidden" value="{{examination.id}}">
-            <input class="btn btn-primary" type="submit" value="zaakceptuj">
+            <input type="hidden" value="{{examination.description}}" id="examination_description">
+
+            <input class="btn btn-primary" type="submit" value="Zaakceptuj">
         </form>
     </div>
 
-    <div class="col-6 text-center">
-        <form action="staff/discard_examination" method="post" onsubmit="return validate_form()">
-            <input class="btn btn-danger" type="submit" value="odrzuć">
+    <div class="col-12 col-lg-4 text-center">
+        <button class="btn btn-primary description_change_button" onclick="show_change_description()">Zmień opis</button>
+        <br class="description_change_button" />
+        <label class="zmiana_opisu" for="description_change">Nowy opis</label><br class="zmiana_opisu"/>
+        <input class="zmiana_opisu" id="description_change" type="text"/><br class="zmiana_opisu"/>
+        <button class="zmiana_opisu btn btn-primary" style="margin-top:5px; margin-bottom:5px;" onclick="save_change_description()">Zapisz</button><br class="zmiana_opisu"/>
+        <button class="zmiana_opisu btn btn-primary" onclick="discard_change_description()">Anuluj</button>
+    </div>
+
+    <div class="col-12 col-lg-4 text-center">
+        <form action="discard_examination" method="post" onsubmit="return validate_form()">
+            <input class="btn btn-danger" type="submit" value="Odrzuć">
             <br/>
             <label for="rejected_for">Powód odrzucenia</label>
             <br/>
