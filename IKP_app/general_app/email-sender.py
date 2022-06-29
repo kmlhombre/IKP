@@ -55,16 +55,16 @@ def send_appointment_notification(emailData):
         print('Something went wrong')
 
 
-if __name__ == '__main__':    
-    emailDict = {
-        'subject':'Szpital HCP - powiadomienie',
-        'to': 'imufkbuimohdoqndkl@bvhrs.com',
-        'from':'Szpital HCP',
-        'date':'11-12-2037',
-        'time':'12:34',
-        'type':'xyz',
-        'department':'xyz',
-        'room':'213a',
-        'doctor':'Łuczak'
-    }
-    send_appointment_notification(emailDict)
+# if __name__ == '__main__':    
+#     emailDict = {
+#         'subject':'Szpital HCP - powiadomienie',
+#         'to': 'imufkbuimohdoqndkl@bvhrs.com',
+#         'from':'Szpital HCP',
+#         'date':'11-12-2037',
+#         'time':'12:34',
+#         'type':'xyz',
+#         'department':'xyz',
+#         'room':'213a',
+#         'doctor':'Łuczak'
+#     }
+#     send_appointment_notification(emailDict)
