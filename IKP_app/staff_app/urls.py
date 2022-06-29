@@ -15,6 +15,6 @@ urlpatterns = [
     path('registration/examinations/examination/file', views.examination_file),
     path('registration/examinations/unaccepted-examination/file', views.unaccepted_examination_file),
     path('registration/examinations/examination-accept', views.examination_accept),
-    path('registration/examinations/examination-reject', views.examination_reject)
-
+    path('registration/examinations/examination-reject', views.examination_reject),
+    path('analyze_examinations', views.analyze_single_examination)
               ] + static(settings.STATIC_URL, document_root=settings.STATIC_URL)

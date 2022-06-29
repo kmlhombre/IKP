@@ -137,6 +137,23 @@ def examination_accept(request):
 def examination_reject(request):
     return render(request, 'examination-reject.html', {'role': navbar_staff(request)})
 
+def analyze_single_examination(request):
+
+    unaccepted_examination = UnacceptedExaminations.objects.filter().order_by('id')[0]
+    #patient_pesel = unaccepted_examination.patient_pesel
+
+    #next_id = UnacceptedExaminations.objects.order_by('-id').first().id + 1
+
+    request_uri = request.build_absolute_uri()
+    file_path = request_uri + "/file?hash=" + unaccepted_examination.document_content.name.replace('unaccepted_examinations/', '')
+    return render(request, 'staff-analyze-examinations.html', {'examination': unaccepted_examination, 'file_path' : file_path})
+
+
+def discard_examination(request):
+    pass
+
+def accept_examination():
+    pass
 
 # Helper functions
 def next_id(model):

@@ -111,12 +111,14 @@ class general_examination:
                 self.accepted = True
                 self.accepted_at = orig.accepted_at
                 self.accepted_by = orig.accepted_by
+                self.description = orig.description
                 return
             if isinstance(orig, UnacceptedExaminations):
                 self.document_content = orig.document_content
                 self.rejected_at = orig.rejected_at
                 self.rejected_by = orig.rejected_by
                 self.rejected_for = orig.rejected_for
+                self.description = orig.description
                 return
 
     id = -1
@@ -127,6 +129,7 @@ class general_examination:
     uploaded_by = -1
     accepted_at = models.DateTimeField()
     accepted_by = -1
+    description = "empty description"
 
     accepted = False
     rejected = False
@@ -249,8 +252,7 @@ def examination_single(request):
         uploaded_by_name = get_staff_name_by_id(examination.uploaded_by.id)
 
     if 'unaccepted-examination' in request_uri:
-        file_path = request_uri + "/file?hash=" + examination.document_content.name.replace('unaccepted_examinations/',
-                                                                                            '')
+        file_path = request_uri + "/file?hash=" + examination.document_content.name.replace('unaccepted_examinations/','')
         return render(request, 'unaccepted-examination.html', {'exam': examination, 'file_path': file_path, 'accepted_by_name' : accepted_by_name, 'uploaded_by_name' : uploaded_by_name})
     else:
         file_path = request_uri + "/file?hash=" + examination.document_content.replace('examinations/', '')
