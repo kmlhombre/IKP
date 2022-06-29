@@ -136,7 +136,7 @@ class general_examination:
 
     rejected_at = models.DateTimeField()
     rejected_by = -1
-    rejected_for = 'Object instance not set correctly. Contact you administrator.'
+    rejected_for = 'Object instance not set correctly. Contact your administrator.'
 
 
 def examinations(request):

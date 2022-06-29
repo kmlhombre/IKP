@@ -1,0 +1,60 @@
+{% extends "website-base.html" %}
+{% block content %}
+
+<a href="/staff/registration/examinations" class="center-block">
+<button type="button" class="btn btn-primary btn-lg btn-block col-sm-12 col-md-8 col-lg-6" style=" margin: auto; margin-top: 10px; display: block;">Powrót</button>
+</a>
+<table class="table">
+    <tr>
+        <th scope="col">Opis</th>
+        <th scope="col">Typ dokumentu</th>
+        <th scope="col">Załączony</th>
+        {% if exam.rejected_at %}
+            <th scope="col">Odrzucony</th>
+            <th scope="col">Powód odrzucenia</th>
+        {% else %}
+            <th scope="col">Zatwierdź</th>
+            <th scope="col">Odrzuć</th>
+        {% endif %}
+    </tr>
+    <tr>
+        <td>{{ exam.description}}</td>
+        <td>{{ exam.document_type}}</td>
+        <td>{{ exam.uploaded_at}}</td>
+        <td>
+            {% if exam.rejected_at %}
+            <span style="color:red;">{{ exam.rejected_at}}</span>
+            {% else %}
+            <form action="examination-accept" method="post">{% csrf_token %}
+                <input type="submit" value="Zatwierdź">
+                <input type="hidden" name="examination_id" value="{{ exam.id}}">
+            </form>
+            {% endif %}
+        </td>
+        <td>
+            {% if exam.rejected_at %}
+            <span style="color:red;">{{ exam.rejected_for}}</span>
+            {% else %}
+            <form action="examination-reject" method="post">{% csrf_token %}
+                <input type="submit" value="Odrzuć">
+                <input type="hidden" name="examination_id" value="{{ i.id}}">
+            </form>
+            {% endif %}
+
+        </td>
+    </tr>
+</table>
+    <iframe
+    src="{{ file_path }}"
+    frameBorder="0"
+    scrolling="auto"
+    height="800"
+    width="100%"
+    ></iframe>
+
+<label for="description">Opis dokumentu</label>
+<div id="description">
+
+</div>
+{% endblock %}
+
