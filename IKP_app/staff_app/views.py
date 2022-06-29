@@ -7,15 +7,46 @@ from django.shortcuts import render
 from django.http import HttpResponseForbidden, FileResponse, Http404, HttpResponseNotAllowed
 from general_app.models import *
 from patient_app.views import general_examination
+from django.http import HttpResponseNotFound
 # Comment this
 # from IKP_app.general_app.models import *
 # from IKP_app.patient_app.views import general_examination
+
+
+def staff_accept_single_appointment_2(request):
+    app_id = request.POST.get("appointment_id","")
+
+    date = request.POST.get("app_date","")
+    time = request.POST.get("app_time","")
+    doctor = request.POST.get("doctor","")
+    room = request.POST.get("room","")
+
+    print('---'+date)
+    print('---'+time)
+    print('---'+doctor)
+    print('---'+room)
+
+
+    return HttpResponseNotFound("hello")
+
+def staff_delete_single_appointment_2(request):
+    app_id = request.POST.get("appointment_id","")
+
+    return HttpResponseNotFound("hello")
 
 
 # Create your views here.
 def index(request):
     return render(request, 'index-staff.html', {'role': navbar_staff(request)})
 
+def accept_appointments(request):
+    appointments = Appointments.objects.filter(accepted_by__isnull=True)
+    booked_visits = []
+    for x in appointments:
+        booked_visits.append(Appointments.objects.filter(department=x.department, appointment_type=x.appointment_type, appointment_date = x.suggested_date).count())
+
+
+    return render(request, 'staff-accept-appointments.html', {'appointments' : zip(appointments,booked_visits)})
 
 def appointments_physician(request):
     appointments = None
@@ -52,6 +83,29 @@ def appointment_accept(request):
 
     return render(request, 'appointment-accept.html', {'appointment': appointment, 'role': navbar_staff(request)})
 
+def accept_single_appointment(request):
+    unaccepted_appointments = Appointments.objects.filter(accepted_by__isnull=True).order_by('id')
+    appointments_left = len(unaccepted_appointments)
+    unaccepted_appointment = unaccepted_appointments[0]
+
+    request_uri = request.build_absolute_uri()
+    file_path = ''
+    appointments_that_day = Appointments.objects.filter(department=unaccepted_appointment.department, appointment_type=unaccepted_appointment.appointment_type, appointment_date = unaccepted_appointment.suggested_date).count()
+
+    doctors = HospitalStaff.objects.filter(role='Lekarz')
+    rooms = Rooms.objects.filter(department=unaccepted_appointment.department)
+
+    #TODO bartek zrób żeby się wyświetlało skierownie
+    #if unaccepted_appointment.referral is not None:
+    #    file_path = request_uri + "/file?hash=" + unaccepted_appointment.referral.name.replace(
+     #       'unaccepted_examinations/', '')
+    return render(request, 'staff-accept-single-appointment.html',
+                  {'appointment': unaccepted_appointment, 'file_path': file_path,
+                   'appointments_left': appointments_left,
+                   'appointments_that_day' : appointments_that_day,
+                   'doctors':doctors,
+                   'rooms':rooms
+                   })
 
 def examinations_registration(request):
     examinations = None
@@ -139,7 +193,7 @@ def examination_reject(request):
 
 def analyze_single_examination(request):
     unaccepted_examinations = UnacceptedExaminations.objects.filter().order_by('id')
-    examinations_left = len(unaccepted_examinations)-1
+    examinations_left = len(unaccepted_examinations)
     unaccepted_examination = unaccepted_examinations[0]
     #patient_pesel = unaccepted_examination.patient_pesel
 

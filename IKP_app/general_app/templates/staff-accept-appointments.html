@@ -1,0 +1,47 @@
+{% extends "website-base.html" %}
+{% block content %}
+
+<a href="/staff/" class="center-block">
+					<button type="button" class="btn btn-primary btn-lg btn-block col-sm-12 col-md-8 col-lg-6" style=" margin: auto; margin-top: 10px; display: block;">Powrót</button>
+</a>
+<div class="row">
+    <div class="col-12">
+        <table class="table">
+            <tr>
+                <th></th>
+                <th>Sugerowana data</th>
+                <th>Pacjent</th>
+                <th>Oddział</th>
+                <th>Typ wizyty</th>
+                <th>Skierowanie</th>
+                <th>Wizyt tego dnia</th>
+            </tr>
+
+            {% for a,b in appointments %}
+            <tr>
+                <td>
+                    <form action="accept_appointments/accept_single_appointment" method="post">{% csrf_token %}
+                        <input type="submit" value="Przejdź do wizyty">
+                        <input type="hidden" name="appointment_id" value="{{ a.id}}">
+                    </form>
+                </td>
+                <td>{{a.suggested_date}}</td>
+                <td>{{a.patient_pesel.user.first_name}} {{a.patient_pesel.user.last_name}}</td>
+                <td>{{a.department.department}}</td>
+                <td>{{a.appointment_type.appointment_type}}</td>
+                <td>
+                    {% if a.referral == None %}
+                        Brak
+                    {% else %}
+                        Tak
+                    {% endif %}
+                </td>
+                <td>{{b}}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

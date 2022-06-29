@@ -1,0 +1,95 @@
+{% extends "website-base.html" %}
+{%block content %}
+
+<div class="row">
+    <div class="col-12">
+        <h4>Pozostało <span style="color:#FF0000">{{appointments_left}}</span> wizyt do zatwierdzenia</h4>
+        <table class="table">
+            <tr>
+                <th>Sugerowana data</th>
+                <th>Pacjent</th>
+                <th>Oddział</th>
+                <th>Typ wizyty</th>
+                <th>Wizyt tego dnia</th>
+
+            </tr>
+            <tr>
+                <td>{{appointment.suggested_date}}</td>
+                <td>{{appointment.patient_pesel.user.first_name}} {{a.patient_pesel.user.last_name}}</td>
+                <td>{{appointment.department.department}}</td>
+                <td>{{appointment.appointment_type.appointment_type}}</td>
+                <td>{{appointments_that_day}}</td>
+
+            </tr>
+        </table>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-lg-12 text-center">
+        <form class="form" action="accept_single_appointment/staff_accept_single_appointment_2" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="appointment_id" value="{{appointment.id}}"/>
+            <table class="table">
+                <tr>
+                    <th>Data</th>
+                    <th>Godzina</th>
+                    <th>Lekarz</th>
+                    <th>Pokój</th>
+                </tr>
+                <tr>
+                    <td><input type="date" id="app_date"></td>
+                    <td><input type="time" id="app_hour"></td>
+                    <td>
+                        <select name="doctor">
+                            {% for d in doctors %}
+                            <option value="{{d.id}}">
+                                {{d.title.title}} {{d.user.first_name}} {{d.user.last_name}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                         <select name="room">
+                            {% for r in rooms %}
+                            <option value="{{r.room_name}}">
+                                {{r.room_name}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+            </table>
+
+            <input type="hidden" value="{{examination.id}}">
+            <input class="btn btn-primary" type="submit" value="Zaakceptuj">
+        </form>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12 col-lg-12 text-center">
+        <form action="accept_single_appointment/staff_delete_single_appointment_2" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="appointment_id" value="{{appointment.id}}"/>
+            <input class="btn btn-danger" type="submit" value="Odrzuć wizytę">
+            <br/>
+            <input type="hidden" value="{{examination.id}}">
+        </form>
+        <br>
+        <div class="alert alert-danger" id="form_alert" style="display: none;">
+            Musisz wpisać conajmniej 3 znaki
+        </div>
+    </div>
+</div>
+<br/>
+    <iframe
+        src="{{ file_path }}"
+        frameBorder="0"
+        scrolling="auto"
+        height="800"
+        width="100%"
+    />
+
+
+
+
+{% endblock %}
