@@ -1,7 +1,27 @@
 {% extends "website-base.html" %}
 {% block content %}
 
+<script>
+    document.getElementById("navbar_examinations").setAttribute('aria-current','page');
+    document.getElementById("navbar_examinations").classList.add('active');
+</script>
 
+<style>
+    #examinations_table_filter > label
+    {
+        margin-left: auto;
+        margin-right: 0;
+        display: block;
+        width: 50%;
+    }
+
+    thead > tr > th
+    {
+        cursor: pointer;
+    }
+</style>
+
+<h2>Badania</h2>
 <div class="row">
     <div class="text-center">
         <a href="add-examination">
@@ -13,16 +33,19 @@
 <div class="row">
 
     <br/>
-    Examinations:
-    <table class="table">
-        <tr>
-            <th scope="col"></th>
-            <th scope="col">Opis</th>
-            <th scope="col">Dodane</th>
-            <th scope="col">Dodane przez</th>
-            <th scope="col">Zaakceptowane</th>
-            <th scope="col">Zaakceptowane przez</th>
-        </tr>
+
+    <table id="examinations_table" class="table">
+        <thead>
+            <tr>
+                <th class="th-sm sorting_asc" scope="col">  </th>
+                <th scope="col">Opis<i class="fa fa-fw fa-sort"></i></th>
+                <th scope="col">Dodane<i class="fa fa-fw fa-sort"></i></th>
+                <th scope="col">Dodane przez<i class="fa fa-fw fa-sort"></i></th>
+                <th scope="col">Zaakceptowane<i class="fa fa-fw fa-sort"></i></th>
+                <th scope="col">Zaakceptowane przez<i class="fa fa-fw fa-sort"></i></th>
+            </tr>
+        </thead>
+        <tbody>
         {% for i in exams %}
 
         {% if i.accepted %}
@@ -35,9 +58,9 @@
 
                     <td>{{ i.description}}</td>
                     <td>{{ i.uploaded_at}}</td>
-                    <td>{{ i.uploaded_by.id}}</td>
+                    <td>{{ i.uploaded_by}}</td>
                     <td>{{ i.accepted_at}}</td>
-                    <td>{{ i.accepted_by.id}}</td>
+                    <td>{{ i.accepted_by}}</td>
             </tr>
         {% else %}
             <tr>
@@ -49,18 +72,57 @@
 
                     <td>{{ i.description}}</td>
                     <td>{{ i.uploaded_at}}</td>
-                    <td >Ty</td>
+                    <td>{{ i.uploaded_by}}</td>
                     <td></td>
 
                     {% if i.rejected_at %}
-                    <td style="color:red;">Badanie odrzucone</td>
+                    <td style="color:red;">Badanie odrzucone {{ i.rejected_at|date:"d.m.Y" }} <br/> przez {{ i.rejected_by }} <br/> za {{ i.rejected_for }}</td>
                     {% else %}
-                    <td style="color:blue;">Badanie niezaakceptowane</td>
+                    <td style="color:blue;">Badanie w trakcie akceptacji</td>
                     {% endif %}
             </tr>
         {% endif %}
 
         {% endfor %}
+        </tbody>
+
     </table>
 </div>
+
+<script>
+      $(document).ready(
+      function ()
+          {
+            $('#examinations_table').DataTable({
+                "language" :
+                    {
+                        "sProcessing":   "Przetwarzanie...",
+                        "sLengthMenu":   "Pokaż _MENU_ pozycji",
+                        "sZeroRecords":  "Nie znaleziono pasujących pozycji",
+                        "sInfoThousands":  " ",
+                        "sInfo":         "Pozycje od _START_ do _END_ z _TOTAL_ łącznie",
+                        "sInfoEmpty":    "Pozycji 0 z 0 dostępnych",
+                        "sInfoFiltered": "(filtrowanie spośród _MAX_ dostępnych pozycji)",
+                        "sInfoPostFix":  "",
+                        "sSearch":       "Szukaj:",
+                        "sUrl":          "",
+                        "oPaginate": {
+                            "sFirst":    "Pierwsza",
+                            "sPrevious": "Poprzednia",
+                            "sNext":     "Następna",
+                            "sLast":     "Ostatnia"
+                        },
+                        "sEmptyTable":     "Brak danych",
+                        "sLoadingRecords": "Wczytywanie...",
+                        "oAria": {
+                            "sSortAscending":  ": aktywuj, by posortować kolumnę rosnąco",
+                            "sSortDescending": ": aktywuj, by posortować kolumnę malejąco"
+                                  }
+                    }
+            });
+
+          }
+      );
+</script>
+
 {% endblock %}

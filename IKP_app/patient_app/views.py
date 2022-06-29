@@ -153,6 +153,23 @@ def examinations(request):
             for x in unaccepted_examinations:
                 all_examinations.append(general_examination(x))
 
+            for x in all_examinations:
+
+                if (isinstance(x.rejected_by, HospitalStaff)):
+                    x.rejected_by = get_staff_name_by_id(x.rejected_by.id)
+
+                if(isinstance(x.uploaded_by, AuthUser)):
+                    if (request.user.id == x.uploaded_by.id):
+                        x.uploaded_by = 'Ty'
+                    else:
+                        x.uploaded_by = get_staff_name_by_id(x.uploaded_by.id)
+                else:
+                    x.uploaded_by = 'Ty'
+
+                if isinstance(x.accepted_by, HospitalStaff):
+                    x.accepted_by = get_staff_name_by_id(x.accepted_by.id)
+
+
     return render(request, 'examinations.html', {'exams': all_examinations})
 
 
@@ -191,7 +208,16 @@ def appointments(request):
     except ObjectDoesNotExist:
         # TODO handle error
         print("Logged user not in 'Patient' table")
-    return render(request, 'appointments.html', {'appointments': appointments})
+
+    staff_full_names = []
+
+    for x in appointments:
+        if (isinstance(x.doctor, HospitalStaff)):
+            print(get_staff_name_by_id(x.doctor.id))
+            x.doctor.second_name = get_staff_name_by_id(x.doctor.id)
+
+
+    return render(request, 'appointments.html', {'appointments': appointments, 'staff_names' : staff_full_names})
 
 
 def examination_single(request):
@@ -212,13 +238,23 @@ def examination_single(request):
     except ObjectDoesNotExist:
         # TODO handle error
         print("Logged user not in 'Patient' table")
+
+    accepted_by_name = ""
+    uploaded_by_name = ""
+
+    if isinstance(examination, Examinations):
+        accepted_by_name = get_staff_name_by_id(examination.accepted_by.id)
+        uploaded_by_name = get_staff_name_by_id(examination.uploaded_by.id)
+    else:
+        uploaded_by_name = get_staff_name_by_id(examination.uploaded_by.id)
+
     if 'unaccepted-examination' in request_uri:
         file_path = request_uri + "/file?hash=" + examination.document_content.name.replace('unaccepted_examinations/',
                                                                                             '')
-        return render(request, 'unaccepted-examination.html', {'exam': examination, 'file_path': file_path})
+        return render(request, 'unaccepted-examination.html', {'exam': examination, 'file_path': file_path, 'accepted_by_name' : accepted_by_name, 'uploaded_by_name' : uploaded_by_name})
     else:
         file_path = request_uri + "/file?hash=" + examination.document_content.replace('examinations/', '')
-        return render(request, 'examination.html', {'exam': examination, 'file_path': file_path})
+        return render(request, 'examination.html', {'exam': examination, 'file_path': file_path, 'accepted_by_name' : accepted_by_name, 'uploaded_by_name' : uploaded_by_name})
 
 
 def examination_file(request):
@@ -297,3 +333,14 @@ def accept_examination_123(examination_id, accepted_by_id):
     shutil.move(old_path, new_path)
     # Usuwanie z tabeli unaccepted_examinations
     unaccepted_exam.delete()
+
+def get_staff_name_by_id(staff_id):
+    staff_member = HospitalStaff.objects.get(id=staff_id)
+    staff_member_user_id = staff_member.id
+    staff_member_first_name = AuthUser.objects.get(id=staff_member_user_id).first_name
+    staff_member_last_name = AuthUser.objects.get(id=staff_member_user_id).last_name
+    return staff_member.title.title + ' ' + staff_member_first_name[0] + '. ' + staff_member_last_name
+
+def get_name_by_user_id(id):
+    user_object = AuthUser.objects.get(id=id)
+    return user_object.first_name + ' '+ user_object.last_name

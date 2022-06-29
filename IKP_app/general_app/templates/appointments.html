@@ -2,6 +2,11 @@
 {% block content %}
 
 <script>
+    document.getElementById("navbar_appointments").setAttribute('aria-current','page');
+    document.getElementById("navbar_appointments").classList.add('active');
+</script>
+
+<script>
     function toogle_collapse(id)
     {
         var x = document.getElementById('recommendation-' + id);
@@ -19,6 +24,22 @@
     }
 </script>
 
+<style>
+    #appointments_table_filter > label
+    {
+        margin-left: auto;
+        margin-right: 0;
+        display: block;
+        width: 50%;
+    }
+
+    thead > tr > th
+    {
+        cursor: pointer;
+    }
+</style>
+
+<h2>Wizyty</h2>
 <div class="row">
     <div class="text-center">
         <a href="add-appointment">
@@ -30,19 +51,20 @@
 <div class="row">
     <br>
     Appointments:
-    <table class="table">
-        <tr>
-            <th>id</th>
-            <th>data wizyty</th>
-            <th>typ wizyty</th>
-            <th>oddział</th>
-            <th>pokój</th>
-            <th>lekarz</th>
-            <th style="width:350px;">wynik wizyty</th>
-        </tr>
+    <table id="appointments_table" class="table">
+        <thead>
+            <tr>
+                <th>Data wizyty<i class="fa fa-fw fa-sort"></i></th>
+                <th>Typ wizyty<i class="fa fa-fw fa-sort"></i></th>
+                <th>Oddział<i class="fa fa-fw fa-sort"></i></th>
+                <th>Pokój<i class="fa fa-fw fa-sort"></i></th>
+                <th>Lekarz<i class="fa fa-fw fa-sort"></i></th>
+                <th style="width:350px;">wynik wizyty</i></th>
+            </tr>
+        </thead>
+
             {% for i in appointments %}
         <tr>
-            <td>{{ i.id}}</td>
 
             {% if i.appointment_date %}
                 <td>{{ i.appointment_date}}</td>
@@ -51,10 +73,10 @@
             {% endif %}
 
 
-            <td>{{i.appointment_type.appointment_type}}</td>
+            <td>{{ i.appointment_type.appointment_type}}</td>
             <td>{{ i.department.department}}</td>
             <td>{{ i.room.id}}</td>
-            <td>{{ i.doctor.id}}</td>
+            <td>{{ i.doctor.second_name }}</td>
             {% if i.recommendations %}
 
             <td>
@@ -71,4 +93,40 @@
             {% endfor %}
     </table>
 </div>
+
+<script>
+      $(document).ready(
+      function ()
+          {
+            $('#appointments_table').DataTable({
+                "language" :
+                    {
+                        "sProcessing":   "Przetwarzanie...",
+                        "sLengthMenu":   "Pokaż _MENU_ pozycji",
+                        "sZeroRecords":  "Nie znaleziono pasujących pozycji",
+                        "sInfoThousands":  " ",
+                        "sInfo":         "Pozycje od _START_ do _END_ z _TOTAL_ łącznie",
+                        "sInfoEmpty":    "Pozycji 0 z 0 dostępnych",
+                        "sInfoFiltered": "(filtrowanie spośród _MAX_ dostępnych pozycji)",
+                        "sInfoPostFix":  "",
+                        "sSearch":       "Szukaj:",
+                        "sUrl":          "",
+                        "oPaginate": {
+                            "sFirst":    "Pierwsza",
+                            "sPrevious": "Poprzednia",
+                            "sNext":     "Następna",
+                            "sLast":     "Ostatnia"
+                        },
+                        "sEmptyTable":     "Brak danych",
+                        "sLoadingRecords": "Wczytywanie...",
+                        "oAria": {
+                            "sSortAscending":  ": aktywuj, by posortować kolumnę rosnąco",
+                            "sSortDescending": ": aktywuj, by posortować kolumnę malejąco"
+                                  }
+                    }
+            });
+
+          }
+      );
+</script>
 {% endblock %}
