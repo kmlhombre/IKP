@@ -46,7 +46,7 @@ def login_staff(request):
                 login(request, user)
                 return HttpResponseRedirect('/staff/')
 
-    return render(request, 'login.html')
+    return render(request, 'login-staff.html')
 
 
 @login_required(login_url='/general_app/login_user/')

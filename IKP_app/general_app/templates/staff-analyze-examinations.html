@@ -1,0 +1,78 @@
+{% extends "website-base.html" %}
+{%block content %}
+
+<script>
+    function validate_form()
+    {
+        if(document.getElementById("rejected_for").value.length>2)return true;
+        else
+         {
+            document.getElementById('form_alert').style.display = "block";
+            return false;
+         }
+    }
+
+</script>
+
+<div class="row">
+    <div class="col-12">
+        Podstawowe informacje
+        <table class="table">
+            <tr>
+                <th>Pesel pacjenta</th>
+                <th>Imię pacjenta</th>
+                <th>Nazwisko pacjenta</th>
+                <th>Krótki opis</th>
+                <th>Załadowano dnia</th>
+                <th></th>
+                <th></th>
+                <th></th>
+
+            </tr>
+            <tr>
+                <td>{{examination.patient_pesel.pesel}}</td>
+                <td>{{examination.patient_pesel.user.first_name}}</td>
+                <td>{{examination.patient_pesel.user.last_name}}</td>
+                <td>{{examination.description}}</td>
+                <td>{{examination.uploaded_at}}</td>
+
+            </tr>
+        </table>
+    </div>
+</div>
+<div class="row">
+    <div class="col-6 text-center">
+        <form class="form" action="staff/accept_examination" method="post">
+            <input type="hidden" value="{{examination.id}}">
+            <input class="btn btn-primary" type="submit" value="zaakceptuj">
+        </form>
+    </div>
+
+    <div class="col-6 text-center">
+        <form action="staff/discard_examination" method="post" onsubmit="return validate_form()">
+            <input class="btn btn-danger" type="submit" value="odrzuć">
+            <br/>
+            <label for="rejected_for">Powód odrzucenia</label>
+            <br/>
+            <input id="rejected_for" type="text" name="rejected_for">
+            <input type="hidden" value="{{examination.id}}">
+        </form>
+        <br>
+        <div class="alert alert-danger" id="form_alert" style="display: none;">
+            Musisz wpisać conajmniej 3 znaki
+        </div>
+    </div>
+</div>
+<br/>
+    <iframe
+        src="{{ file_path }}"
+        frameBorder="0"
+        scrolling="auto"
+        height="800"
+        width="100%"
+    />
+
+
+
+
+{% endblock %}
