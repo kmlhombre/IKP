@@ -90,9 +90,6 @@
                 <th>Nazwisko pacjenta</th>
                 <th>Krótki opis</th>
                 <th>Załadowano dnia</th>
-                <th></th>
-                <th></th>
-                <th></th>
 
             </tr>
             <tr>
@@ -108,8 +105,8 @@
 </div>
 <div class="row">
     <div class="col-12 col-lg-4 text-center">
-        <form class="form" action="accept_examination" method="post" onsubmit="return validate_acceptance()">
-            <input type="hidden" value="{{examination.id}}">
+        <form class="form" action="accept_examination" method="post" onsubmit="return validate_acceptance()">{% csrf_token %}
+            <input name="examination_id" type="hidden" value="{{examination.id}}">
             <input type="hidden" value="{{examination.description}}" id="examination_description">
 
             <input class="btn btn-primary" type="submit" value="Zaakceptuj">
@@ -126,13 +123,13 @@
     </div>
 
     <div class="col-12 col-lg-4 text-center">
-        <form action="discard_examination" method="post" onsubmit="return validate_form()">
+        <form action="discard_examination" method="post" onsubmit="return validate_form()">{% csrf_token %}
             <input class="btn btn-danger" type="submit" value="Odrzuć">
             <br/>
             <label for="rejected_for">Powód odrzucenia</label>
             <br/>
             <input id="rejected_for" type="text" name="rejected_for">
-            <input type="hidden" value="{{examination.id}}">
+            <input name="examination_id" type="hidden" value="{{examination.id}}">
         </form>
         <br>
         <div class="alert alert-danger" id="form_alert" style="display: none;">

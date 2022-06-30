@@ -344,10 +344,8 @@ def examinations_registration(request):
 
     all_examinations = []
     for x in unaccepted_examinations:
-        all_examinations.append(general_examination(x))
-    for x in examinations:
-        all_examinations.append(general_examination(x))
-
+        if(x.rejected_by is None):
+            all_examinations.append(general_examination(x))
     return render(request, 'examinations-registration.html', {'exams': all_examinations, 'role': navbar_staff(request)})
 
 
@@ -371,7 +369,7 @@ def examination_single_registration(request):
         return render(request, 'unaccepted-examination-registration.html',
                       {'exam': examination, 'file_path': file_path})
     else:
-        file_path = request_uri + "/file?hash=" + examination.document_content.replace('examinations/', '')
+        file_path = request_uri + "/file?hash=" + str(examination.document_content).replace('examinations/', '')
         return render(request, 'examination-registration.html',
                       {'exam': examination, 'file_path': file_path, 'role': navbar_staff(request)})
 
@@ -418,12 +416,18 @@ def examination_reject(request):
 
 
 def analyze_single_examination(request):
-    unaccepted_examinations = UnacceptedExaminations.objects.filter().order_by('id')
-    examinations_left = len(unaccepted_examinations)
-    unaccepted_examination = unaccepted_examinations[0]
-    # patient_pesel = unaccepted_examination.patient_pesel
 
-    # next_id = UnacceptedExaminations.objects.order_by('-id').first().id + 1
+
+
+
+    unaccepted_examinations = UnacceptedExaminations.objects.filter(rejected_for=None).order_by('id')
+    examinations_left = len(unaccepted_examinations)
+    unaccepted_examination = None
+
+    if request.POST.get('examination_id'):
+        unaccepted_examination = UnacceptedExaminations.objects.get(id=request.POST.get('examination_id'))
+    else:
+        unaccepted_examination = unaccepted_examinations[0]
 
     request_uri = request.build_absolute_uri()
     file_path = request_uri + "/file?hash=" + unaccepted_examination.document_content.name.replace(
@@ -434,11 +438,31 @@ def analyze_single_examination(request):
 
 
 def discard_examination(request):
-    pass
+    examination_id = request.POST.get('examination_id')
+    ex = UnacceptedExaminations.objects.get(id=examination_id)
+    ex.rejected_for = request.POST.get('rejected_for', '')
+    staff = HospitalStaff.objects.get(user=request.user.id)
+    ex.rejected_by = staff
+    ex.rejected_at = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+    ex.save(update_fields=['rejected_for','rejected_at','rejected_by'])
+
+    return HttpResponseRedirect('/staff/registration/examinations')
 
 
-def accept_examination():
-    pass
+def accept_examination(request):
+
+    if request.method != 'POST':
+        return HttpResponseNotAllowed()
+    authenticated, _, logged_staff = authenticate_staff(request, 'Rejestrator')
+    if not authenticated:
+        return HttpResponseForbidden()
+
+    logged_staff_user = logged_staff[0].user.id
+    examination_id = request.POST.get('examination_id')
+    accept_examination_helper(examination_id, logged_staff_user)
+
+
+    return HttpResponseRedirect('/staff/registration/examinations')
 
 
 # Helper functions
