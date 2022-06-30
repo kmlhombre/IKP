@@ -21,15 +21,16 @@
                 <label for="file">Plik</label>
                 <input class="form-control" id="file" type="file" name="file">
             </div>
+            <br/>
             <div>
                 <input type="hidden" name="patient_pesel" value="{{ patient_pesel }}">
                 <input class="form-control" type="submit">
             </div>
         </form>
-
+        <br/>
         <form action="/staff/physician/appointments/patient" method="post">{% csrf_token %}
             <input type="hidden" name="patient_pesel" value="{{ patient_pesel }}">
-            <input type="submit" value="Powrót">
+            <input type="submit" value="Wróć" class="btn btn-primary btn-lg btn-block col-sm-12 col-md-8 col-lg-6" style="width: 100%">
         </form>
     </div>
 
