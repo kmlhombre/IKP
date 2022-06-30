@@ -38,7 +38,6 @@
         cursor: pointer;
     }
 </style>
-
 <h2>Wizyty</h2>
 
 <div class="row">
@@ -94,7 +93,7 @@
             <td>
                 <form class="form-horizontal" action="appointment" method="post" enctype="multipart/form-data">{% csrf_token %}
                     <input type="hidden" name="appointment_id" value="{{ i.id }}">
-                    <input class="form-control" type="submit" value="Wyświetl szczegóły">
+                    <input class="btn btn-primary" type="submit" value="Wyświetl szczegóły">
                 </form>
             </td>
         </tr>

@@ -1,10 +1,12 @@
 {% extends "website-base.html" %}
 {% block content %}
 
-<form action="/staff/physician/appointments/patient" method="post">{% csrf_token %}
-            <input type="hidden" name="patient_pesel" value="{{ exam.patient_pesel.pesel }}">
-            <input type="submit" value="Powrót">
-</form>
+<div class="text-center">
+    <form action="/staff/physician/appointments/patient" method="post">{% csrf_token %}
+        <input type="hidden" name="patient_pesel" value="{{ exam.patient_pesel.pesel }}">
+            <input class="btn btn-primary btn-lg btn-block col-sm-12 col-md-8 col-lg-6" type="submit" value="Powrót">
+    </form>
+</div>
 <table class="table">
     <tr>
         <th scope="col">id</th>
