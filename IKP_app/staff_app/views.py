@@ -150,7 +150,7 @@ def accept_appointments(request):
                                                          appointment_date=x.suggested_date).count())
     appointments_left = len(appointments)
 
-    return render(request, 'staff-accept-appointments.html', {'appointments': zip(appointments, booked_visits), 'appointments_left' : appointments_left})
+    return render(request, 'staff-accept-appointments.html', {'role': navbar_staff(request),'appointments': zip(appointments, booked_visits), 'appointments_left' : appointments_left})
 
 
 def appointments_physician(request):
@@ -434,7 +434,7 @@ def analyze_single_examination(request):
         'unaccepted_examinations/', '')
     return render(request, 'staff-analyze-examinations.html',
                   {'examination': unaccepted_examination, 'file_path': file_path,
-                   'examinations_left': examinations_left})
+                   'examinations_left': examinations_left, 'role': navbar_staff(request)})
 
 
 def discard_examination(request):
