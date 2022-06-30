@@ -1,0 +1,14 @@
+{% extends "website-base.html" %}
+{%block content %}
+<div class="row text-center">
+    <a href="/staff/" class="center-block">
+					<button type="button" class="btn btn-primary btn-lg btn-block col-sm-12 col-md-8 col-lg-6" style=" margin: auto; margin-top: 10px; display: block;">Powrót</button>
+    </a>
+    <div class = col-12>
+        <h4>Pomyślnie utworzono użytkownika</h4>
+        <h4>Nazwa użytkownika: <span style="color:#FF0000;">{{username}}</span></h4>
+        <h4>Hasło: <span style="color:#FF0000;">{{password}}</span></h4>
+    </div>
+</div>
+
+{% endblock %}

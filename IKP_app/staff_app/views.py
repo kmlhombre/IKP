@@ -3,6 +3,7 @@ import hashlib
 import http
 import shutil
 
+from django.contrib.auth.hashers import make_password
 from django.conf import settings
 from django.shortcuts import render
 from django.http import HttpResponseForbidden, FileResponse, Http404, HttpResponseNotAllowed
@@ -11,11 +12,98 @@ from patient_app.views import general_examination
 from django.http import HttpResponseNotFound
 from django.shortcuts import HttpResponseRedirect
 from staff_app.forms import ExaminationsForm
+from django.contrib.auth.models import User
+from random import randrange
 
 # Comment this
 # from IKP_app.general_app.models import *
 # from IKP_app.patient_app.views import general_examination
 
+def create_account_2(request):
+    pesel = request.POST.get('pesel','-1')
+    name = request.POST.get('first_name','')
+    last_name = request.POST.get('last_name','')
+    second_name = request.POST.get('second_name','')
+    gender = request.POST.get('gender','X')
+    phone_number = request.POST.get('phone_number','')
+    email = request.POST.get('email','')
+    address_prefix = request.POST.get('address_prefix','Ul.')
+    address = request.POST.get('address','')
+    house_number = request.POST.get('house_number','')
+    apartment_number = request.POST.get('apartment_number','')
+    city = request.POST.get('city','')
+    region = request.POST.get('region','')
+    country = request.POST.get('country','')
+    birth_date = request.POST.get('birth_date','')
+
+    new_id = AuthUser.objects.order_by('-id').first().id +1
+    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+    new_password = User.objects.make_random_password(length=8)
+    new_password_hash = make_password(new_password)
+
+    new_username = name[0:5]+last_name[0:3]+str(randrange(10000,99999))
+    print('-----------------------------------'+region)
+    u = AuthUser(
+        id=new_id,
+        password = new_password_hash,
+        is_superuser = False,
+        username = new_username,
+        first_name = name,
+        last_name = last_name,
+        email = email,
+        is_staff = False,
+        is_active = True,
+        date_joined = now,
+        has_to_change_password = True,
+        last_password_change = now,
+        password_expires = now
+    )
+    u.save()
+
+    gender_object = DGender.objects.get(gender=gender)
+    prefix_object = DAddressPrefix.objects.get(prefix=address_prefix)
+    region_object = DRegion.objects.get(region=region)
+    country_object = DCountry.objects.get(country=country)
+    actual_staff_user = HospitalStaff.objects.get(user=request.user.id)
+
+    p = Patients(
+        pesel = pesel,
+        user = u,
+        second_name = second_name,
+        gender = gender_object,
+        phone_number = phone_number,
+        address_prefix = prefix_object,
+        address = address,
+        house_number = house_number,
+        apartment_number = apartment_number,
+        city = city,
+        region = region_object,
+        country = country_object,
+        birthdate = birth_date,
+        created_at = now,
+        created_by = actual_staff_user
+    )
+
+    p.save()
+    return render(request,'staff-create-account2.html',
+                  {'username' : new_username,
+                   'password' : new_password
+                   })
+
+def create_account(request):
+    genders = DGender.objects.filter()
+    address_prefix = DAddressPrefix.objects.filter()
+    region = DRegion.objects.filter()
+    country = DCountry.objects.filter()
+
+    return render(request, 'staff-create-account.html',
+                  {'role': navbar_staff(request),
+                   'gender': genders,
+                   'prefix' : address_prefix,
+                   'region' : region,
+                   'country' : country
+
+                   })
 
 def staff_accept_single_appointment_2(request):
     app_id = request.POST.get("appointment_id")

@@ -247,21 +247,21 @@ def examination_single(request):
 
     if isinstance(examination, Examinations):
         accepted_by_name = get_staff_name_by_id(examination.accepted_by.id)
-        uploaded_by_name = get_staff_name_by_id(examination.uploaded_by.id)
+        uploaded_by_name = get_name_by_user_id(examination.uploaded_by.id)
     else:
-        uploaded_by_name = get_staff_name_by_id(examination.uploaded_by.id)
+        uploaded_by_name = "Ty"
 
     if 'unaccepted-examination' in request_uri:
         file_path = request_uri + "/file?hash=" + examination.document_content.name.replace('unaccepted_examinations/','')
         return render(request, 'unaccepted-examination.html', {'exam': examination, 'file_path': file_path, 'accepted_by_name' : accepted_by_name, 'uploaded_by_name' : uploaded_by_name})
     else:
-        file_path = request_uri + "/file?hash=" + examination.document_content.replace('examinations/', '')
+        file_path = request_uri + "/file?hash=" + str(examination.document_content).replace('examinations/', '')
         return render(request, 'examination.html', {'exam': examination, 'file_path': file_path, 'accepted_by_name' : accepted_by_name, 'uploaded_by_name' : uploaded_by_name})
 
 
 def examination_file(request):
     examination, examination_type = examination_helper(request, 'normal')
-    document_path = (settings.MEDIA_ROOT + "/" + examination.document_content).replace('\\', '/')
+    document_path = (str(settings.MEDIA_ROOT) + "/" + str(examination.document_content)).replace('\\', '/')
     try:
         if examination_type is None:
             return FileResponse(open(document_path, 'rb'))

@@ -6,6 +6,7 @@ from . import views
 
 urlpatterns = [
     path('', views.index),
+    path('registration', views.index),
     path('registration/accept_appointments', views.accept_appointments),
     path('physician/appointments/', views.appointments_physician),
     path('physician/appointments/patient', views.patient_physician),
@@ -21,6 +22,8 @@ urlpatterns = [
     path('registration/accept_appointments/accept_single_appointment/staff_accept_single_appointment_2', views.staff_accept_single_appointment_2),
     path('registration/accept_appointments/accept_single_appointment/staff_delete_single_appointment_2', views.staff_delete_single_appointment_2),
     path('registration/examinations/', views.examinations_registration),
+    path('registration/create_account/', views.create_account),
+    path('registration/create_account/create_account2', views.create_account_2),
     path('registration/examinations/examination', views.examination_single_registration),
     path('registration/examinations/unaccepted-examination', views.examination_single_registration),
     path('registration/examinations/examination/file', views.examination_file),
