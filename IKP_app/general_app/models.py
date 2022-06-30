@@ -275,7 +275,7 @@ class DjangoSession(models.Model):
 class Examinations(models.Model):
     id = models.IntegerField(primary_key=True)
     patient_pesel = models.ForeignKey('Patients', models.DO_NOTHING, db_column='patient_pesel')
-    document_content = models.TextField()
+    document_content = models.FileField(upload_to='examinations', validators=[validate_file_size_10])
     document_type = models.TextField()
     description = models.CharField(max_length=50)
     uploaded_at = models.DateTimeField()

@@ -338,10 +338,13 @@ def accept_examination_123(examination_id, accepted_by_id):
 
 def get_staff_name_by_id(staff_id):
     staff_member = HospitalStaff.objects.get(id=staff_id)
-    staff_member_user_id = staff_member.id
+    staff_member_user_id = staff_member.user_id
     staff_member_first_name = AuthUser.objects.get(id=staff_member_user_id).first_name
     staff_member_last_name = AuthUser.objects.get(id=staff_member_user_id).last_name
-    return staff_member.title.title + ' ' + staff_member_first_name[0] + '. ' + staff_member_last_name
+    if staff_member.title is None:
+        return staff_member_first_name[0] + '. ' + staff_member_last_name
+    else:
+        return staff_member.title.title + ' ' + staff_member_first_name[0] + '. ' + staff_member_last_name
 
 def get_name_by_user_id(id):
     user_object = AuthUser.objects.get(id=id)

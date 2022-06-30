@@ -1,0 +1,39 @@
+{% extends "website-base.html" %}
+{% block content %}
+
+<form action="/staff/physician/appointments/patient" method="post">{% csrf_token %}
+            <input type="hidden" name="patient_pesel" value="{{ exam.patient_pesel.pesel }}">
+            <input type="submit" value="Powrót">
+</form>
+<table class="table">
+    <tr>
+        <th scope="col">id</th>
+        <th scope="col">Typ dokumentu</th>
+        <th scope="col">Załączony</th>
+        <th scope="col">Załączony przez</th>
+        <th scope="col">Zaakceptowany</th>
+        <th scope="col">Zaakceptowany przez</th>
+    </tr>
+    <tr>
+        <td>{{exam.description}}</td>
+        <td>{{ exam.document_type}}</td>
+        <td>{{ exam.uploaded_at}}</td>
+        <td>{{ exam.uploaded_by.id}}</td>
+        <td>{{ exam.accepted_at}}</td>
+        <td>{{ exam.accepted_by.id}}</td>
+    </tr>
+</table>
+    <iframe
+    src="{{ file_path }}"
+    frameBorder="0"
+    scrolling="auto"
+    height="800"
+    width="100%"
+    ></iframe>
+
+<label for="description">Opis dokumentu</label>
+<div id="description">
+
+</div>
+{% endblock %}
+

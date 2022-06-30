@@ -1,0 +1,39 @@
+{% extends "website-base.html" %}
+{% block content %}
+
+<script>
+    document.getElementById("navbar_examinations").setAttribute('aria-current','page');
+    document.getElementById("navbar_examinations").classList.add('active');
+</script>
+
+<div class="row">
+    <div class="col-0 col-lg-3"></div>
+    <div class="col-12 col-lg-6">
+        <form class="form-horizontal" action="add-examination-process" method="post" enctype="multipart/form-data">{% csrf_token %}
+
+            <div class="form-group">
+                <label for="description">Krótki opis</label>
+                <input class="form-control" id="description" type="text" name="description">
+                <small id="emailHelp" class="form-text text-muted">Na przykład: EKG serca, opis badania</small>
+            </div>
+
+            <div class="form-group">
+                <label for="file">Plik</label>
+                <input class="form-control" id="file" type="file" name="file">
+            </div>
+            <div>
+                <input type="hidden" name="patient_pesel" value="{{ patient_pesel }}">
+                <input class="form-control" type="submit">
+            </div>
+        </form>
+
+        <form action="/staff/physician/appointments/patient" method="post">{% csrf_token %}
+            <input type="hidden" name="patient_pesel" value="{{ patient_pesel }}">
+            <input type="submit" value="Powrót">
+        </form>
+    </div>
+
+</div>
+
+
+{% endblock %}

@@ -1,7 +1,7 @@
 import datetime
+import hashlib
 import http
 import shutil
-from datetime import datetime,date
 
 from django.conf import settings
 from django.shortcuts import render
@@ -10,6 +10,8 @@ from general_app.models import *
 from patient_app.views import general_examination
 from django.http import HttpResponseNotFound
 from django.shortcuts import HttpResponseRedirect
+from staff_app.forms import ExaminationsForm
+
 # Comment this
 # from IKP_app.general_app.models import *
 # from IKP_app.patient_app.views import general_examination
@@ -23,25 +25,25 @@ def staff_accept_single_appointment_2(request):
     doctor = request.POST.get("doctor")
     room = request.POST.get("room")
 
-    date_time_obj = datetime.strptime((str(date)+' '+str(time)), '%Y-%m-%d %H:%M')
+    date_time_obj = datetime.strptime((str(date) + ' ' + str(time)), '%Y-%m-%d %H:%M')
     doctor_object = HospitalStaff.objects.get(id=doctor)
     room_object = Rooms.objects.get(room_name=room)
 
     app_object = Appointments.objects.get(id=app_id)
-    app_object.appointment_date=date_time_obj
-    app_object.doctor=doctor_object
-    app_object.room=room_object
+    app_object.appointment_date = date_time_obj
+    app_object.doctor = doctor_object
+    app_object.room = room_object
 
     current_user = AuthUser.objects.get(username=request.user)
     app_object.accepted_by = HospitalStaff.objects.get(user=current_user)
     app_object.accepted_at = datetime.now().strftime('%Y-%m-%d %H:%M')
 
-
-    app_object.save(update_fields=['appointment_date','doctor','room','accepted_by','accepted_at'])
+    app_object.save(update_fields=['appointment_date', 'doctor', 'room', 'accepted_by', 'accepted_at'])
     return HttpResponseRedirect('/staff/registration/accept_appointments/accept_single_appointment')
 
+
 def staff_delete_single_appointment_2(request):
-    app_id = request.POST.get("appointment_id","")
+    app_id = request.POST.get("appointment_id", "")
     Appointments.objects.get(id=app_id).delete()
 
     return HttpResponseRedirect('/staff/registration/accept_appointments/accept_single_appointment')
@@ -51,14 +53,16 @@ def staff_delete_single_appointment_2(request):
 def index(request):
     return render(request, 'index-staff.html', {'role': navbar_staff(request)})
 
+
 def accept_appointments(request):
     appointments = Appointments.objects.filter(accepted_by__isnull=True)
     booked_visits = []
     for x in appointments:
-        booked_visits.append(Appointments.objects.filter(department=x.department, appointment_type=x.appointment_type, appointment_date = x.suggested_date).count())
+        booked_visits.append(Appointments.objects.filter(department=x.department, appointment_type=x.appointment_type,
+                                                         appointment_date=x.suggested_date).count())
 
+    return render(request, 'staff-accept-appointments.html', {'appointments': zip(appointments, booked_visits)})
 
-    return render(request, 'staff-accept-appointments.html', {'appointments' : zip(appointments,booked_visits)})
 
 def appointments_physician(request):
     appointments = None
@@ -70,12 +74,15 @@ def appointments_physician(request):
         logged_staff = logged_staff[0]
     date_today = datetime.date.today()
     appointments = Appointments.objects.filter(doctor=logged_staff, appointment_date__year=date_today.year,
-                                               appointment_date__month=date_today.month, appointment_date__day=date_today.day)
+                                               appointment_date__month=date_today.month,
+                                               appointment_date__day=date_today.day)
     patient_list = [i.patient_pesel for i in appointments]
     patient_names = {}
     for i in patient_list:
-        patient_names[i.pesel] = str(AuthUser.objects.get(id=i.user_id).first_name) + " " + str(AuthUser.objects.get(id=i.user_id).last_name)
-    return render(request, 'appointments-physician.html', {'appointments': appointments, 'role': navbar_staff(request), 'patient_names': patient_names})
+        patient_names[i.pesel] = str(AuthUser.objects.get(id=i.user_id).first_name) + " " + str(
+            AuthUser.objects.get(id=i.user_id).last_name)
+    return render(request, 'appointments-physician.html',
+                  {'appointments': appointments, 'role': navbar_staff(request), 'patient_names': patient_names})
 
 
 def appointment_physician(request):
@@ -89,9 +96,14 @@ def appointment_physician(request):
     patient_name = str(AuthUser.objects.get(id=appointment.patient_pesel.user_id).first_name) + " " + \
                    str(AuthUser.objects.get(id=appointment.patient_pesel.user_id).last_name)
 
+    if 'text' in request.POST:
+        appointment_physician_update(appointment, request.POST.get('text'))
+
     request_uri = request.build_absolute_uri()
     file_path = request_uri + "/file?hash=" + str(appointment.referral).replace('referrals/', '')
-    return render(request, 'appointment-physician.html', {'role': navbar_staff(request), 'appointment': appointment, 'file_path': file_path, 'patient_name': patient_name})
+    return render(request, 'appointment-physician.html',
+                  {'role': navbar_staff(request), 'appointment': appointment, 'file_path': file_path,
+                   'patient_name': patient_name})
 
 
 def appointment_physician_file(request):
@@ -112,8 +124,62 @@ def appointment_physician_file(request):
 
 
 def patient_physician(request):
+    authenticated, role_object, _ = authenticate_staff(request, 'Lekarz')
+    if not authenticated:
+        return HttpResponseForbidden()
+    patient_pesel = request.POST.get('patient_pesel')
+    patient = Patients.objects.get(pesel=patient_pesel)
+    patient_first_name = str(AuthUser.objects.get(id=patient.user_id).first_name)
+    patient_last_name = str(AuthUser.objects.get(id=patient.user_id).last_name)
+    patient_email = str(AuthUser.objects.get(id=patient.user_id).email)
+    examinations = Examinations.objects.filter(patient_pesel=patient)
+    return render(request, 'patient-physician.html', {'role': navbar_staff(request), 'patient': patient,
+                                                      'exams': examinations, 'first_name': patient_first_name,
+                                                      'last_name': patient_last_name, 'email': patient_email})
 
-    return render(request, 'patient-physician.html', {'role': navbar_staff(request)})
+
+def add_examination_physician(request):
+    authenticated, role_object, _ = authenticate_staff(request, 'Lekarz')
+    if not authenticated:
+        return HttpResponseForbidden()
+    patient_pesel = request.POST.get('patient_pesel')
+    return render(request, 'add-examination-physician.html', {'role': navbar_staff(request), 'patient_pesel': patient_pesel})
+
+
+def add_examination_process_physician(request):
+    if request.method == 'POST':
+        form = ExaminationsForm(request.POST, request.FILES)
+        if form.is_valid() and request.user.is_authenticated:
+            logged_staff = HospitalStaff.objects.get(user_id=request.user.id)
+            auth_user = AuthUser.objects.get(id=request.user.id)
+            description = request.POST.get('description')
+            patient_pesel = request.POST.get('patient_pesel')
+            patient = Patients.objects.get(pesel=patient_pesel)
+            document_content = request.FILES['file']
+            document_type = document_content.name.split('.')[-1].upper()
+            document_content.name = hashlib.sha256(datetime.datetime.now().strftime(
+                "%m/%d/%Y, %H:%M:%S").encode()).hexdigest() + '.' + document_type.lower()
+            if logged_staff is not None:
+                Examinations.objects.create(id=next_id(Examinations), patient_pesel=patient,
+                                            document_content=document_content, document_type=document_type,
+                                            description=description, accepted_by=logged_staff, accepted_at=datetime.datetime.now(),
+                                            uploaded_at=datetime.datetime.now(), uploaded_by=auth_user)
+    return patient_physician(request)
+
+
+def examination_single_physician(request):
+    examination = None
+    request_uri = request.build_absolute_uri()
+    authenticated, role_object, logged_staff = authenticate_staff(request, 'Lekarz')
+    examination_id = request.POST.get("examination_id")
+    if not authenticated:
+        return HttpResponseForbidden()
+    else:
+        logged_staff = logged_staff[0]
+    examination = Examinations.objects.get(id=examination_id)
+    file_path = request_uri + "/file?hash=" + str(examination.document_content).replace('examinations/', '')
+    return render(request, 'examination-physician.html',
+                  {'exam': examination, 'file_path': file_path, 'role': navbar_staff(request)})
 
 
 def appointments_registration(request):
@@ -124,7 +190,8 @@ def appointments_registration(request):
     else:
         logged_staff = logged_staff[0]
     appointments = Appointments.objects.all()
-    return render(request, 'appointments-registration.html', {'appointments': appointments, 'role': navbar_staff(request)})
+    return render(request, 'appointments-registration.html',
+                  {'appointments': appointments, 'role': navbar_staff(request)})
 
 
 def appointment_accept(request):
@@ -138,11 +205,12 @@ def appointment_accept(request):
 
     return render(request, 'appointment-accept.html', {'appointment': appointment, 'role': navbar_staff(request)})
 
+
 def accept_single_appointment(request):
     unaccepted_appointments = Appointments.objects.filter(accepted_by__isnull=True).order_by('id')
     appointments_left = len(unaccepted_appointments)
 
-    if len(unaccepted_appointments)==0:
+    if len(unaccepted_appointments) == 0:
         return HttpResponseRedirect('/staff/registration/accept_appointments')
 
     unaccepted_appointment = None
@@ -154,22 +222,25 @@ def accept_single_appointment(request):
 
     request_uri = request.build_absolute_uri()
     file_path = ''
-    appointments_that_day = Appointments.objects.filter(department=unaccepted_appointment.department, appointment_type=unaccepted_appointment.appointment_type, appointment_date = unaccepted_appointment.suggested_date).count()
+    appointments_that_day = Appointments.objects.filter(department=unaccepted_appointment.department,
+                                                        appointment_type=unaccepted_appointment.appointment_type,
+                                                        appointment_date=unaccepted_appointment.suggested_date).count()
 
     doctors = HospitalStaff.objects.filter(role='Lekarz')
     rooms = Rooms.objects.filter(department=unaccepted_appointment.department)
 
-    #TODO bartek zrób żeby się wyświetlało skierownie
-    #if unaccepted_appointment.referral is not None:
+    # TODO bartek zrób żeby się wyświetlało skierownie
+    # if unaccepted_appointment.referral is not None:
     #    file_path = request_uri + "/file?hash=" + unaccepted_appointment.referral.name.replace(
-     #       'unaccepted_examinations/', '')
+    #       'unaccepted_examinations/', '')
     return render(request, 'staff-accept-single-appointment.html',
                   {'appointment': unaccepted_appointment, 'file_path': file_path,
                    'appointments_left': appointments_left,
-                   'appointments_that_day' : appointments_that_day,
-                   'doctors':doctors,
-                   'rooms':rooms
+                   'appointments_that_day': appointments_that_day,
+                   'doctors': doctors,
+                   'rooms': rooms
                    })
+
 
 def examinations_registration(request):
     examinations = None
@@ -208,7 +279,8 @@ def examination_single_registration(request):
     if 'unaccepted-examination' in request_uri:
         file_path = request_uri + "/file?hash=" + examination.document_content.name.replace('unaccepted_examinations/',
                                                                                             '')
-        return render(request, 'unaccepted-examination-registration.html', {'exam': examination, 'file_path': file_path})
+        return render(request, 'unaccepted-examination-registration.html',
+                      {'exam': examination, 'file_path': file_path})
     else:
         file_path = request_uri + "/file?hash=" + examination.document_content.replace('examinations/', '')
         return render(request, 'examination-registration.html',
@@ -217,7 +289,7 @@ def examination_single_registration(request):
 
 def examination_file(request):
     examination, examination_type = examination_helper(request, 'normal')
-    document_path = (settings.MEDIA_ROOT + "/" + examination.document_content).replace('\\', '/')
+    document_path = (settings.MEDIA_ROOT + "/" + str(examination.document_content)).replace('\\', '/')
     try:
         if examination_type is None:
             return FileResponse(open(document_path, 'rb'))
@@ -260,13 +332,16 @@ def analyze_single_examination(request):
     unaccepted_examinations = UnacceptedExaminations.objects.filter().order_by('id')
     examinations_left = len(unaccepted_examinations)
     unaccepted_examination = unaccepted_examinations[0]
-    #patient_pesel = unaccepted_examination.patient_pesel
+    # patient_pesel = unaccepted_examination.patient_pesel
 
-    #next_id = UnacceptedExaminations.objects.order_by('-id').first().id + 1
+    # next_id = UnacceptedExaminations.objects.order_by('-id').first().id + 1
 
     request_uri = request.build_absolute_uri()
-    file_path = request_uri + "/file?hash=" + unaccepted_examination.document_content.name.replace('unaccepted_examinations/', '')
-    return render(request, 'staff-analyze-examinations.html', {'examination': unaccepted_examination, 'file_path' : file_path, 'examinations_left' : examinations_left})
+    file_path = request_uri + "/file?hash=" + unaccepted_examination.document_content.name.replace(
+        'unaccepted_examinations/', '')
+    return render(request, 'staff-analyze-examinations.html',
+                  {'examination': unaccepted_examination, 'file_path': file_path,
+                   'examinations_left': examinations_left})
 
 
 def discard_examination(request):
@@ -289,8 +364,10 @@ def examination_helper(request, examination_type):
     examination = None
     examination_document = request.GET.get('hash', '')
     authenticated, role_object, _ = authenticate_staff(request, 'Rejestrator')
+    authenticated_l, _, _ = authenticate_staff(request, 'Lekarz')
     if not authenticated:
-        return HttpResponseForbidden()
+        if not authenticated_l:
+            return HttpResponseForbidden()
     if examination_type == 'normal':
         examination = Examinations.objects.filter(document_content='examinations/' + examination_document)
         examination = examination[0] if len(examination) > 0 else None
@@ -344,3 +421,8 @@ def accept_examination_helper(examination_id, accepted_by_id):
     shutil.move(old_path, new_path)
     # Usuwanie z tabeli unaccepted_examinations
     unaccepted_exam.delete()
+
+
+def appointment_physician_update(appointment, recommendations):
+    appointment.recommendations = recommendations
+    appointment.save()

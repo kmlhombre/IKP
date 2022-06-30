@@ -32,26 +32,25 @@
             <td>
                 {{ patient_name }}
             </td>
-            {% if appointment.recommendations %}
 
-            <td>
-                <div id="recommendation-{{ appointment.id}}" style="display: none; width:350px;">
-                    {{ appointment.recommendations }}
-                </div>
-            </td>
-            {% else %}
-                <td></td>
-            {% endif %}
-            <td>
-                <form class="form-horizontal" action="appointment" method="post" enctype="multipart/form-data">{% csrf_token %}
+            <form class="form-horizontal" action="" method="post" enctype="multipart/form-data">{% csrf_token %}
+                <td>
+                    {% if appointment.recommendations %}
+                        <textarea name="text">{{ appointment.recommendations }}</textarea>
+                    {% else %}
+                        <textarea name="text"></textarea>
+                    {% endif %}
+                </td>
+                <td>
                     <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
                     <input class="form-control" type="submit" value="Dodaj/edytuj wynik wizyty">
-                </form>
-            </td>
+                </td>
+            </form>
         </tr>
     </table>
 </div>
 
+<h3>Skierowanie</h3>
 <iframe
 src="{{ file_path }}"
 frameBorder="0"

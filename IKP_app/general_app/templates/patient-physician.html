@@ -1,148 +1,65 @@
 {% extends "website-base.html" %}
 {% block content %}
-
-<script>
-    document.getElementById("navbar_appointments").setAttribute('aria-current','page');
-    document.getElementById("navbar_appointments").classList.add('active');
-</script>
-
-<script>
-    function toogle_collapse(id)
-    {
-        var x = document.getElementById('recommendation-' + id);
-        var y = document.getElementById('button-show-' + id);
-        if (x.style.display === "none")
-        {
-            y.innerHTML = 'Ukryj'
-            x.style.display = "block";
-        }
-        else
-        {
-            y.innerHTML = 'Odczytaj'
-            x.style.display = "none";
-        }
-    }
-</script>
-
-<style>
-    #appointments_table_filter > label
-    {
-        margin-left: auto;
-        margin-right: 0;
-        display: block;
-        width: 50%;
-    }
-
-    thead > tr > th
-    {
-        cursor: pointer;
-    }
-</style>
-
-<h2>Wizyty</h2>
+<h2>Pacjent</h2>
+<br/>
 <div class="row">
-    <div class="text-center">
-        <a href="add-appointment">
-            <button type="button" class="btn btn-primary btn-lg btn-block col-sm-12 col-md-8 col-lg-6" style="margin-top: 10px;">Zaplanuj wizytę</button>
-        </a>
-    </div>
-</div>
-
-<div class="row">
-    <br>
-    Appointments:
+    <h3>Podstawowe informacje</h3>
     <table id="appointments_table" class="table">
         <thead>
             <tr>
-                <th>Data wizyty<i class="fa fa-fw fa-sort"></i></th>
-                <th>Typ wizyty<i class="fa fa-fw fa-sort"></i></th>
-                <th>Oddział<i class="fa fa-fw fa-sort"></i></th>
-                <th>Pokój<i class="fa fa-fw fa-sort"></i></th>
-                <th>Pacjent<i class="fa fa-fw fa-sort"></i></th>
-                <th style="width:350px;">Wynik wizyty</i></th>
-                <th></th>
+                <th>Imię</th>
+                <th>Nazwisko</th>
+                <th>Płeć</th>
+                <th>Data urodzenia</th>
+                <th>Nr telefonu</th>
+                <th>Adres email</th>
             </tr>
         </thead>
 
-            {% for i in appointments %}
         <tr>
-
-            {% if i.appointment_date %}
-                <td>{{ i.appointment_date}}</td>
+            <td>{{ first_name }}</td>
+            <td>{{ last_name }}</td>
+            {% if patient.gender.gender == 'M' %}
+            <td>Mężczyzna</td>
             {% else %}
-                <td style="color:blue;">Oczekuje na zatwierdzenie</td>
+            <td>Kobieta</td>
             {% endif %}
-
-
-            <td>{{ i.appointment_type.appointment_type}}</td>
-            <td>{{ i.department.department}}</td>
-            <td>{{ i.room.id}}</td>
-            <td>
-                {% for key, value in patient_names.items %}
-                  {% if key == i.patient_pesel.pesel %}
-                      <form action="patient" method="post" enctype="multipart/form-data">{% csrf_token %}
-                        <input type="hidden" name="patient_pesel" value="{{ i.patient_pesel.pesel }}">
-                        <a id="submit_patient" href="#" onclick="this.closest('form').submit();return false;">{{ value }}</a>
-                      </form>
-                  {% endif %}
-                {% endfor %}
-            </td>
-            {% if i.recommendations %}
-
-            <td>
-                <button style="width:150px" id="button-show-{{ i.id}}" onclick="toogle_collapse({{ i.id}})" class="btn btn-primary">Odczytaj</button>
-                <br/>
-                <div id="recommendation-{{ i.id}}" style="display: none; width:350px;">
-                    {{ i.recommendations}}
-                </div>
-            </td>
-            {% else %}
-                <td></td>
-            {% endif %}
-            <td>
-                <form class="form-horizontal" action="appointment" method="post" enctype="multipart/form-data">{% csrf_token %}
-                    <input type="hidden" name="appointment" value="{{ i }}">
-                    <input class="form-control" type="submit" value="Wyświetl szczegóły">
-                </form>
-            </td>
+            <td>{{ patient.birthdate|date:"d.m.Y"}}</td>
+            <td>{{ patient.phone_number }}</td>
+            <td>{{ email }}</td>
         </tr>
-            {% endfor %}
     </table>
 </div>
 
-<script>
-      $(document).ready(
-      function ()
-          {
-            $('#appointments_table').DataTable({
-                "language" :
-                    {
-                        "sProcessing":   "Przetwarzanie...",
-                        "sLengthMenu":   "Pokaż _MENU_ pozycji",
-                        "sZeroRecords":  "Nie znaleziono pasujących pozycji",
-                        "sInfoThousands":  " ",
-                        "sInfo":         "Pozycje od _START_ do _END_ z _TOTAL_ łącznie",
-                        "sInfoEmpty":    "Pozycji 0 z 0 dostępnych",
-                        "sInfoFiltered": "(filtrowanie spośród _MAX_ dostępnych pozycji)",
-                        "sInfoPostFix":  "",
-                        "sSearch":       "Szukaj:",
-                        "sUrl":          "",
-                        "oPaginate": {
-                            "sFirst":    "Pierwsza",
-                            "sPrevious": "Poprzednia",
-                            "sNext":     "Następna",
-                            "sLast":     "Ostatnia"
-                        },
-                        "sEmptyTable":     "Brak danych",
-                        "sLoadingRecords": "Wczytywanie...",
-                        "oAria": {
-                            "sSortAscending":  ": aktywuj, by posortować kolumnę rosnąco",
-                            "sSortDescending": ": aktywuj, by posortować kolumnę malejąco"
-                                  }
-                    }
-            });
+<div class="row">
+    <h3>Wyniki badań pacjenta</h3>
+    <form action="add-examination" method="post">{% csrf_token %}
+            <input type="hidden" name="patient_pesel" value="{{ patient.pesel }}">
+            <input type="submit" value="Dodaj badanie">
+    </form>
+    <table class="table">
+        <tr>
+            <th scope="col"></th>
+            <th scope="col">Opis</th>
+            <th scope="col">Dodane</th>
+            <th scope="col">Dodane przez</th>
+            <th scope="col">Zaakceptowane</th>
+        </tr>
+        {% for i in exams %}
+            <tr>
+                <td style="text-align: center;">
+                    <form action="examination" method="post">{% csrf_token %}
+                        <input type="submit" value="Przejdź do badania">
+                        <input type="hidden" name="examination_id" value="{{ i.id}}">
+                    </form>
 
-          }
-      );
-</script>
+                    <td>{{ i.description}}</td>
+                    <td>{{ i.uploaded_at}}</td>
+                    <td>{{ i.uploaded_by.first_name}} {{ i.uploaded_by.last_name}}</td>
+                    <td>{{ i.accepted_at}}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
 {% endblock %}
