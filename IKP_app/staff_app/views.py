@@ -113,7 +113,7 @@ def staff_accept_single_appointment_2(request):
     doctor = request.POST.get("doctor")
     room = request.POST.get("room")
 
-    date_time_obj = datetime.strptime((str(date) + ' ' + str(time)), '%Y-%m-%d %H:%M')
+    date_time_obj = datetime.datetime.strptime((str(date) + ' ' + str(time)), '%Y-%m-%d %H:%M')
     doctor_object = HospitalStaff.objects.get(id=doctor)
     room_object = Rooms.objects.get(room_name=room)
 
@@ -124,7 +124,7 @@ def staff_accept_single_appointment_2(request):
 
     current_user = AuthUser.objects.get(username=request.user)
     app_object.accepted_by = HospitalStaff.objects.get(user=current_user)
-    app_object.accepted_at = datetime.now().strftime('%Y-%m-%d %H:%M')
+    app_object.accepted_at = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
 
     app_object.save(update_fields=['appointment_date', 'doctor', 'room', 'accepted_by', 'accepted_at'])
     return HttpResponseRedirect('/staff/registration/accept_appointments/accept_single_appointment')
@@ -148,8 +148,9 @@ def accept_appointments(request):
     for x in appointments:
         booked_visits.append(Appointments.objects.filter(department=x.department, appointment_type=x.appointment_type,
                                                          appointment_date=x.suggested_date).count())
+    appointments_left = len(appointments)
 
-    return render(request, 'staff-accept-appointments.html', {'appointments': zip(appointments, booked_visits)})
+    return render(request, 'staff-accept-appointments.html', {'appointments': zip(appointments, booked_visits), 'appointments_left' : appointments_left})
 
 
 def appointments_physician(request):
